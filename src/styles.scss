@@ -1,1 +1,130 @@
-/* You can add global styles to this file, and also import other style files */
+/* ── Tailwind v4 + daisyUI v5 ────────────────────── */
+@use 'tailwindcss';
+@plugin "daisyui";
+
+/* ── Tipografía global ───────────────────────────── */
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ── Tema Plásticas MM ───────────────────────────── */
+@plugin "daisyui/theme" {
+  name: "plasticasMM";
+  default: true;
+  color-scheme: light;
+
+  /* Colores de marca */
+  --color-primary: oklch(0.41 0.22 25); /* #C60015 rojo MM */
+  --color-primary-content: oklch(1 0 0);
+  --color-secondary: oklch(0.35 0 0); /* #4A4A4A */
+  --color-secondary-content: oklch(1 0 0);
+  --color-accent: oklch(0.58 0.17 25); /* #E34F4F */
+  --color-accent-content: oklch(1 0 0);
+
+  /* Neutros */
+  --color-neutral: oklch(0.28 0.02 264);
+  --color-neutral-content: oklch(0.92 0.004 286);
+
+  /* Superficies */
+  --color-base-100: oklch(1 0 0);
+  --color-base-200: oklch(0.96 0.004 286);
+  --color-base-300: oklch(0.92 0.004 286);
+  --color-base-content: oklch(0.21 0.02 264);
+
+  /* Semánticos */
+  --color-info: oklch(0.62 0.13 237);
+  --color-info-content: oklch(1 0 0);
+  --color-success: oklch(0.69 0.18 142);
+  --color-success-content: oklch(1 0 0);
+  --color-warning: oklch(0.73 0.15 70);
+  --color-warning-content: oklch(0.21 0.02 264);
+  --color-error: oklch(0.62 0.21 25);
+  --color-error-content: oklch(1 0 0);
+
+  /* Radios */
+  --radius-selector: 0.375rem;
+  --radius-field: 0.375rem;
+  --radius-box: 0.5rem;
+
+  /* Tamaños base */
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+
+  /* Bordes y profundidad */
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+/* ── Animaciones globales reutilizables ─────────── */
+/* Pueden usarse con animate.enter / animate.leave de Angular 21,
+   con clases toggleadas, transiciones CSS, GSAP, Motion One, etc. */
+
+.page-enter {
+  animation: page-in 0.2s ease-out both;
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.list-item-enter {
+  animation: list-in 0.15s ease-out both;
+  animation-delay: calc(var(--i, 0) * 40ms);
+}
+@keyframes list-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.modal-enter {
+  animation: modal-in 0.18s ease-out both;
+}
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.toast-enter {
+  animation: toast-in 0.2s ease-out both;
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.leave {
+  animation: fade-out 0.15s ease-in both;
+}
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}

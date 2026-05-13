@@ -1,0 +1,806 @@
+---
+description: Sistema de diseño Industrias Plásticas MM (Tailwind v4 + daisyUI v5)
+alwaysApply: true
+---
+
+# Sistema de Diseño — MM Comercial App
+
+App Angular 21 + Tailwind CSS v4 + daisyUI v5. Tema único `plasticasMM` definido en
+`src/styles.scss` (rojo corporativo `#C60015`).
+
+## Reglas obligatorias
+
+1. **daisyUI primero — obligatorio.** Si daisyUI v5 tiene un componente para
+   lo que necesitás, **debés** usar su clase (no reimplementarlo con HTML +
+   utilidades Tailwind). Componentes obligatorios cuando aplique:
+   `btn`, `input`, `textarea`, `select`, `checkbox`, `radio`, `toggle`,
+   `range`, `file-input`, `fieldset` + `label`, `card`, `modal`, `drawer`,
+   `navbar`, `menu`, `dropdown`, `tabs`, `steps`, `breadcrumbs`, `join`
+   (paginación), `table`, `stats`, `alert`, `badge`, `toast`, `tooltip`,
+   `collapse`, `accordion`, `progress`, `radial-progress`, `loading`,
+   `avatar`, `divider`, `kbd`, `hero`, `timeline`, `chat`.
+   Tailwind v4 sólo se usa para: spacing, `flex`/`grid`, tipografía, breakpoints
+   responsive y micro-ajustes encima del componente daisyUI (`btn px-10`,
+   `card md:card-side`, etc.). **No** escribir CSS custom salvo las animaciones
+   ya definidas en `src/styles.scss`.
+2. **Solo colores semánticos** (`bg-primary`, `text-base-content`, `border-base-300`,
+   `bg-success`, etc.). NUNCA usar `bg-red-500`, `text-gray-700` ni HEX directos —
+   romperían el theming.
+3. **No crear `tailwind.config.js`** (deprecado en v4). Tokens viven en `styles.scss`.
+4. **No usar `dark:` prefix** — daisyUI cambia colores automáticamente con `data-theme`.
+5. **Layout**: usar `bg-base-100` para fondos, `bg-base-200` para superficies
+   secundarias (cards), `bg-base-300` para bordes/divisores.
+6. **Animaciones**: enfoque libre — pueden usarse `animate.enter`/`animate.leave`
+   (Angular 21), transiciones CSS toggleadas con `[class.x]`, librerías JS
+   (GSAP, Motion One), o las clases globales reutilizables (`page-enter`,
+   `list-item-enter`, `modal-enter`, `toast-enter`, `leave`) ya definidas en
+   `styles.scss`. Elegir lo más simple para cada caso.
+7. **Formularios**: usar **Reactive Forms** (`ReactiveFormsModule`, `FormBuilder`,
+   `FormGroup`, `FormControl`, `Validators`, `FormArray`). NO usar Signal Forms
+   (`@angular/forms/signals`) — API experimental en Angular 21. NO usar
+   Template-driven Forms para formularios con validación o estructura compleja.
+8. **Componentes y reactividad** (APIs estables únicamente):
+   - **Standalone por defecto** (Angular 19+). No usar `NgModule`.
+   - **Estado**: `signal()`, `computed()`, `linkedSignal()`. NO usar `resource()`
+     ni `httpResource()` — APIs experimentales.
+   - **Inputs/outputs signal-based**: `input()`, `input.required()`, `output()`,
+     `model()`. NO usar `@Input`/`@Output`/`EventEmitter` en código nuevo.
+   - **Control de flujo nativo**: `@if` / `@for` (con `track` obligatorio) /
+     `@switch`. NO usar `*ngIf` / `*ngFor` / `*ngSwitch`.
+   - **DI con `inject()`**. Servicios `@Injectable({ providedIn: 'root' })`.
+   - **HTTP**: `HttpClient` con observables; convertir a signals con `toSignal()`
+     cuando se necesite consumirlo en plantillas. No `resource()`/`httpResource()`.
+   - **Naming**: no agregar sufijo `Component` a la clase (`PedidosList`, no
+     `PedidosListComponent`).
+9. **Responsive mobile-first — obligatorio.** Toda interfaz nueva debe verse
+   y funcionar correctamente en mobile (`<640px`), tablet (`md` 768px) y
+   desktop (`lg` 1024px+). Reglas concretas:
+   - **Mobile-first**: las clases base apuntan a mobile; los prefijos
+     `sm:`/`md:`/`lg:`/`xl:`/`2xl:` sólo añaden estilos hacia arriba.
+   - **Anchos**: `w-full` por defecto en mobile, limitar con `max-w-*` o pasar
+     a `md:w-auto` en desktop. Prohibido fijar anchos en píxeles
+     (`w-[600px]`).
+   - **Grids**: siempre escalar columnas
+     (`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3`). No `grid-cols-3`
+     suelto.
+   - **Flex**: cuando un row se va a apilar en mobile usar
+     `flex flex-col md:flex-row`.
+   - **Padding / spacing**: escalar con breakpoints (`p-4 sm:p-6 md:p-8`,
+     `gap-3 md:gap-6`).
+   - **Tipografía**: títulos escalan (`text-2xl sm:text-3xl`,
+     `text-xl md:text-2xl`). No hardcodear `text-3xl` para todos los tamaños.
+   - **Navegación**: drawer / menú colapsado en mobile, sidebar fijo
+     (`lg:drawer-open`) desde `lg:`. Botón hamburguesa visible sólo en
+     `lg:hidden`.
+   - **Tablas**: siempre dentro de `overflow-x-auto` (mínimo). Para datasets
+     densos, alternar `<table>` oculta en mobile (`hidden md:table`) con
+     grid de `card` (`md:hidden`).
+   - **Modales**: `modal-box` ya es responsive; nunca fijar ancho en píxeles,
+     usar `max-w-md` / `max-w-2xl`.
+   - **Target táctil**: cualquier control clickeable debe medir ≥44px
+     (usar `btn`, `btn-sm` mínimo, o `min-h-11` en custom).
+   - **Imágenes**: `w-full h-auto` o `aspect-*` para mantener proporción.
+10. **Reglas daisyUI v5**:
+    - Solo clases de daisyUI v5 + utilidades Tailwind v4. Idealmente no escribir
+      CSS custom.
+    - Personalizar primero con utilidades Tailwind (`btn px-10`). Solo si hay
+      conflicto de especificidad usar `clase!` como último recurso
+      (`btn bg-primary!`).
+    - No aplicar `bg-base-100 text-base-content` al `<body>` salvo necesidad
+      real — daisyUI ya gestiona el tema vía `data-theme`.
+    - Placeholders de imagen: `https://picsum.photos/{w}/{h}`.
+11. **Routing**: features cargadas con lazy loading (`loadChildren` o
+    `loadComponent`). Solo las rutas raíz / shell son eager. Los componentes
+    nunca se acoplan entre features.
+
+## Estructura del proyecto
+
+```text
+src/app/
+├── core/      ← servicios globales, guards, interceptors, layout
+├── shared/    ← componentes/pipes/directivas reutilizables
+└── features/  ← módulos por funcionalidad (pedidos, cotizaciones, ...)
+```
+
+Features con lazy loading. Componentes nunca acoplados entre features.
+
+## Tokens de color
+
+| Token              | Uso                                  |
+| ------------------ | ------------------------------------ |
+| `primary`          | Marca, CTA principales, nav activo   |
+| `secondary`        | Acciones secundarias                 |
+| `accent`           | Hover, badges destacados             |
+| `neutral`          | Sidebar, fondos oscuros              |
+| `base-100/200/300` | Fondos / superficies / bordes        |
+| `success`          | Pedido entregado, estado OK          |
+| `warning`          | Pedido pendiente, alerta             |
+| `error`            | Cancelado, error                     |
+| `info`             | Tips informativos                    |
+
+Cada color tiene su `*-content` con contraste WCAG AA garantizado.
+
+## Diseño responsive
+
+### Breakpoints (Tailwind v4)
+
+| Prefijo | Min-width | Cuándo usarlo                                                |
+| ------- | --------- | ------------------------------------------------------------ |
+| (base)  | 0px       | Mobile portrait. Es la base — sin prefijo.                   |
+| `sm:`   | 640px     | Mobile landscape / phablet. Ajustes menores de padding.      |
+| `md:`   | 768px     | Tablet. Pasar de 1 col a 2 cols, mostrar elementos ocultos.  |
+| `lg:`   | 1024px    | Desktop. Sidebar fijo, 3 cols, tabla en vez de cards.        |
+| `xl:`   | 1280px    | Desktop ancho. Layouts más espaciosos.                       |
+| `2xl:`  | 1536px    | Pantallas grandes. Sólo si hay razón concreta.               |
+
+### Checklist mobile-first
+
+Antes de cerrar cualquier componente, verificar:
+
+1. ¿Funciona a 360px de ancho sin scroll horizontal?
+2. ¿Todos los `<table>`, `<pre>`, contenedores anchos están dentro de
+   `overflow-x-auto`?
+3. ¿Los grids escalan (`grid-cols-1 md:grid-cols-2 lg:grid-cols-3`)?
+4. ¿Los rows tipo "barra" usan `flex flex-col md:flex-row`?
+5. ¿Padding / spacing escalan con breakpoints (`p-4 sm:p-6 md:p-8`)?
+6. ¿Los títulos escalan (`text-2xl sm:text-3xl`)?
+7. ¿La navegación se colapsa en mobile (drawer / menú hamburguesa)?
+8. ¿Los controles tienen ≥44px de alto (`btn` por defecto cumple)?
+9. ¿Ningún ancho hardcodeado (`w-[600px]`, `min-w-[800px]`)?
+
+### Patrón: Tabla en desktop, cards en mobile
+
+```html
+<!-- Vista compacta en mobile -->
+<ul class="grid gap-3 md:hidden">
+  @for (pedido of pedidos(); track pedido.id) {
+    <li class="card bg-base-200 shadow-sm">
+      <div class="card-body">
+        <h3 class="card-title text-base">Pedido #{{ pedido.id }}</h3>
+        <p class="text-base-content/70">{{ pedido.cliente }}</p>
+        <p class="text-primary font-bold">{{ pedido.total | currency }}</p>
+      </div>
+    </li>
+  }
+</ul>
+
+<!-- Vista de tabla desde md: -->
+<div class="hidden md:block overflow-x-auto rounded-box border border-base-300">
+  <table class="table table-zebra">
+    <thead>
+      <tr><th>#</th><th>Cliente</th><th>Total</th></tr>
+    </thead>
+    <tbody>
+      @for (pedido of pedidos(); track pedido.id) {
+        <tr>
+          <td>{{ pedido.id }}</td>
+          <td>{{ pedido.cliente }}</td>
+          <td>{{ pedido.total | currency }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+```
+
+### Patrón: Sidebar responsive (drawer)
+
+`drawer` cerrado en mobile, fijo desde `lg:` con `lg:drawer-open`. Mismo
+markup para ambos casos.
+
+```html
+<div class="drawer lg:drawer-open">
+  <input id="app-drawer" type="checkbox" class="drawer-toggle" />
+
+  <div class="drawer-content flex flex-col">
+    <div class="navbar bg-base-200 lg:hidden">
+      <label for="app-drawer" class="btn btn-ghost btn-square"
+             aria-label="Abrir menú">☰</label>
+      <span class="text-lg font-semibold ms-2">MM Comercial</span>
+    </div>
+    <main class="p-4 sm:p-6 md:p-8">
+      <router-outlet />
+    </main>
+  </div>
+
+  <div class="drawer-side">
+    <label for="app-drawer" class="drawer-overlay"
+           aria-label="Cerrar menú"></label>
+    <ul class="menu bg-neutral text-neutral-content min-h-full w-64 p-4">
+      <li>
+        <a routerLink="/pedidos" routerLinkActive="menu-active"
+           ariaCurrentWhenActive="page">Pedidos</a>
+      </li>
+    </ul>
+  </div>
+</div>
+```
+
+### Patrón: Formulario responsive
+
+Campos apilados en mobile, en 2 columnas desde `md:`. Botones full-width en
+mobile, automáticos en desktop.
+
+```html
+<form class="space-y-4">
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <fieldset class="fieldset">
+      <legend class="fieldset-legend">Nombre</legend>
+      <input class="input input-bordered w-full" [formControl]="nombre" />
+    </fieldset>
+    <fieldset class="fieldset">
+      <legend class="fieldset-legend">NIT</legend>
+      <input class="input input-bordered w-full" [formControl]="nit" />
+    </fieldset>
+  </div>
+
+  <fieldset class="fieldset">
+    <legend class="fieldset-legend">Dirección</legend>
+    <input class="input input-bordered w-full" [formControl]="direccion" />
+  </fieldset>
+
+  <div class="flex flex-col gap-2 md:flex-row md:justify-end">
+    <button type="button" class="btn btn-ghost">Cancelar</button>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+  </div>
+</form>
+```
+
+### Patrón: Header / navbar responsive
+
+`navbar` con título a la izquierda y acciones a la derecha. El menú secundario
+se colapsa en `dropdown` en mobile.
+
+```html
+<header class="navbar bg-base-200 px-4 sm:px-6">
+  <div class="navbar-start">
+    <label for="app-drawer" class="btn btn-ghost btn-square lg:hidden"
+           aria-label="Abrir menú">☰</label>
+    <span class="text-lg font-bold ms-2 sm:text-xl">MM Comercial</span>
+  </div>
+  <div class="navbar-end gap-2">
+    <button class="btn btn-ghost btn-circle" aria-label="Notificaciones">🔔</button>
+    <div class="dropdown dropdown-end">
+      <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+        <div class="avatar-placeholder">
+          <div class="w-8 rounded-full bg-neutral text-neutral-content">BG</div>
+        </div>
+      </div>
+      <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box w-52 p-2 shadow">
+        <li><a>Perfil</a></li>
+        <li><a>Cerrar sesión</a></li>
+      </ul>
+    </div>
+  </div>
+</header>
+```
+
+## Tipografía (Inter)
+
+Los títulos deben escalar con breakpoints (mobile-first).
+
+- H1: `text-2xl sm:text-3xl font-bold`
+- H2: `text-xl sm:text-2xl font-semibold`
+- H3: `text-lg sm:text-xl font-semibold`
+- Body: `text-sm sm:text-base`
+- Label: `text-sm font-medium`
+- Caption: `text-xs`
+
+## Componentes daisyUI obligatorios
+
+Antes de escribir HTML, consultá esta tabla. **Si una columna "Usá" existe,
+es la única forma aceptada** — no reimplementar con `<div>` + utilidades
+Tailwind ni con librerías externas.
+
+| No uses                                                       | Usá                                                                 |
+| ------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `<button class="px-4 py-2 bg-primary rounded">`               | `<button class="btn btn-primary">`                                  |
+| `<input class="border rounded px-3 py-2 w-full">`             | `<input class="input input-bordered w-full">`                       |
+| `<textarea class="border rounded">`                           | `<textarea class="textarea textarea-bordered">`                     |
+| `<select class="border rounded">`                             | `<select class="select select-bordered">`                           |
+| `<input type="checkbox">` sin estilo                          | `<input type="checkbox" class="checkbox checkbox-primary">`         |
+| `<input type="radio">` sin estilo                             | `<input type="radio" class="radio radio-primary">`                  |
+| Toggle custom con `[class.is-on]`                             | `<input type="checkbox" class="toggle toggle-primary">`             |
+| `<input type="range">` sin estilo                             | `<input type="range" class="range range-primary">`                  |
+| `<input type="file">` sin estilo                              | `<input type="file" class="file-input file-input-bordered">`        |
+| `<div class="rounded shadow p-4 …">` (tarjeta)                | `card` + `card-body` (ver "Card de información")                    |
+| `<dialog [open]>` o `<div>` flotante manual                   | `<dialog #d class="modal">` + `d.showModal()`                       |
+| `<table>` sin clase                                           | `<table class="table table-zebra">` dentro de `overflow-x-auto`     |
+| `<nav>` casero con `<a>` sueltos                              | `navbar` + `navbar-start/center/end`, o `drawer` + `menu`           |
+| `<ul>` de links de navegación                                 | `<ul class="menu bg-neutral text-neutral-content …">`               |
+| Sidebar con `position: fixed` manual                          | `drawer` + `lg:drawer-open`                                         |
+| Banner / mensaje de estado                                    | `<div class="alert alert-{info\|success\|warning\|error}">`         |
+| Etiqueta de estado                                            | `<span class="badge badge-{color}">`                                |
+| Snackbar / notificación flotante                              | `<div class="toast"><div class="alert alert-{color}">…</div></div>` |
+| Wizard / pasos                                                | `<ul class="steps"><li class="step step-primary">…</li></ul>`       |
+| Tabs custom                                                   | `<div role="tablist" class="tabs tabs-bordered">…</div>`            |
+| Breadcrumbs custom                                            | `<div class="breadcrumbs"><ul>…</ul></div>`                         |
+| Paginación con `<button>` sueltos                             | `<div class="join">` + `class="join-item btn"`                      |
+| Acordeón / collapse manual con `[hidden]`                     | `<div class="collapse collapse-arrow">…</div>`                      |
+| Tooltip de librería externa                                   | `<span class="tooltip tooltip-top" data-tip="…">`                   |
+| Dropdown / menú contextual custom                             | `<div class="dropdown"><div class="dropdown-content">…</div></div>` |
+| Spinner SVG/CSS custom                                        | `<span class="loading loading-spinner loading-md">`                 |
+| Barra de progreso manual                                      | `<progress class="progress progress-primary" value="…" max="100">`  |
+| KPI circular con SVG                                          | `<div class="radial-progress" role="progressbar">…</div>`           |
+| `<img>` de avatar suelta                                      | `<div class="avatar"><div class="w-12 rounded-full">…</div></div>`  |
+| Iniciales en círculo                                          | `<div class="avatar avatar-placeholder">…</div>`                    |
+| `<hr>` o divisor custom                                       | `<div class="divider">o</div>`                                      |
+| Stats / KPI card                                              | `<div class="stats"><div class="stat">…</div></div>`                |
+| Tecla / atajo                                                 | `<kbd class="kbd">Ctrl</kbd>`                                       |
+
+Para *layout* puro (espaciado, posición, breakpoints) sí se usa Tailwind v4
+directamente — porque daisyUI no provee componentes de layout: `flex`, `grid`,
+`gap-*`, `p-*`, `space-y-*`, `max-w-*`, prefijos `sm:`/`md:`/`lg:`, etc.
+
+## Ejemplos de uso
+
+### Botones (CTA / secundario / fantasma)
+
+```html
+<button class="btn btn-primary">Crear pedido</button>
+<button class="btn btn-primary btn-sm">Guardar</button>
+<button class="btn btn-ghost">Cancelar</button>
+<button class="btn btn-error btn-outline">Eliminar</button>
+```
+
+### Card de información
+
+```html
+<div class="card bg-base-200 shadow-sm">
+  <div class="card-body">
+    <h2 class="card-title">Pedido #1234</h2>
+    <p class="text-base-content/70">Cliente: Pintuco SA</p>
+    <div class="card-actions justify-end">
+      <button class="btn btn-primary btn-sm">Ver detalle</button>
+    </div>
+  </div>
+</div>
+```
+
+### Stat card (KPI dashboard)
+
+```html
+<div class="stats shadow bg-base-100">
+  <div class="stat">
+    <div class="stat-title">Pedidos del día</div>
+    <div class="stat-value text-primary">42</div>
+    <div class="stat-desc text-success">+12% vs ayer</div>
+  </div>
+</div>
+```
+
+### Badges de estado de pedido
+
+```html
+<span class="badge badge-warning">Pendiente</span>
+<span class="badge badge-info">En proceso</span>
+<span class="badge badge-success">Entregado</span>
+<span class="badge badge-error">Cancelado</span>
+```
+
+### Grupo de radios
+
+Cada conjunto de `radio` debe tener un `name` único — si dos grupos comparten
+`name` se interfieren entre sí.
+
+```html
+<fieldset class="fieldset">
+  <legend class="fieldset-legend">Tipo de entrega</legend>
+  <label class="label cursor-pointer gap-2">
+    <input type="radio" name="entrega" class="radio radio-primary" value="local" />
+    Domicilio local
+  </label>
+  <label class="label cursor-pointer gap-2">
+    <input type="radio" name="entrega" class="radio radio-primary" value="nacional" />
+    Nacional
+  </label>
+</fieldset>
+```
+
+### Radial progress (KPI circular)
+
+`role="progressbar"` y `aria-valuenow` son obligatorios para lectores de pantalla.
+`--value` debe estar entre 0 y 100.
+
+```html
+<div class="radial-progress text-primary"
+     style="--value:70; --size:5rem; --thickness:0.5rem;"
+     role="progressbar"
+     aria-valuenow="70"
+     aria-valuemin="0"
+     aria-valuemax="100">
+  70%
+</div>
+```
+
+### Input de formulario (con `fieldset` accesible)
+
+```html
+<fieldset class="fieldset">
+  <legend class="fieldset-legend">Cliente</legend>
+  <input type="text" class="input input-bordered w-full" placeholder="Buscar..." />
+  <p class="label">Nombre o NIT del cliente</p>
+</fieldset>
+```
+
+### Tabla de listado
+
+`overflow-x-auto` es **requisito mínimo** responsive — sin él la tabla se
+desborda en mobile. Para datasets densos, considerar el patrón
+*Tabla → Cards en mobile* descrito en la sección "Diseño responsive".
+
+```html
+<div class="overflow-x-auto rounded-box border border-base-300 bg-base-100">
+  <table class="table table-zebra">
+    <thead>
+      <tr><th>#</th><th>Cliente</th><th>Total</th><th>Estado</th></tr>
+    </thead>
+    <tbody>
+      @for (pedido of pedidos(); track pedido.id) {
+        <tr>
+          <td>{{ pedido.id }}</td>
+          <td>{{ pedido.cliente }}</td>
+          <td>{{ pedido.total | currency }}</td>
+          <td><span class="badge badge-success">{{ pedido.estado }}</span></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+```
+
+### Modal de confirmación
+
+Usar `showModal()` (no `[open]`) para obtener backdrop, focus trap y cierre con
+`Esc` nativos. Los botones con `formmethod="dialog"` cierran el `<dialog>` sin
+JS adicional.
+
+```html
+<button class="btn btn-error" (click)="dialog.showModal()">Eliminar</button>
+
+<dialog #dialog class="modal">
+  <div class="modal-box modal-enter">
+    <h3 class="text-xl font-semibold">¿Eliminar pedido?</h3>
+    <p class="py-4 text-base-content/70">Esta acción no se puede deshacer.</p>
+    <form method="dialog" class="modal-action">
+      <button class="btn btn-ghost">Cancelar</button>
+      <button class="btn btn-error" (click)="confirmar()">Eliminar</button>
+    </form>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button aria-label="Cerrar">close</button>
+  </form>
+</dialog>
+```
+
+### Toast de notificación
+
+```html
+<div class="toast toast-top toast-end">
+  <div class="alert alert-success toast-enter">
+    <span>Cotización guardada</span>
+  </div>
+</div>
+```
+
+### Wizard multi-paso (cotización)
+
+```html
+<ul class="steps w-full">
+  <li class="step step-primary">Cliente</li>
+  <li class="step step-primary">Productos</li>
+  <li class="step">Resumen</li>
+</ul>
+```
+
+### Layout shell con drawer
+
+Implementación responsive por defecto del shell:
+
+- **Mobile / tablet** (`<lg`): drawer cerrado, se abre con el botón hamburguesa.
+- **Desktop** (`lg:` y arriba): `lg:drawer-open` mantiene el sidebar fijo
+  y oculta el botón hamburguesa (`lg:hidden`).
+
+El `id` del `drawer-toggle` debe ser **único en toda la app** y siempre se abre
+con un `<label for="...">` (no manipular el `checked` desde TS).
+
+```html
+<div class="drawer lg:drawer-open">
+  <input id="app-drawer" type="checkbox" class="drawer-toggle" />
+
+  <div class="drawer-content flex flex-col bg-base-100">
+    <!-- navbar (con label[for="app-drawer"] para abrir en mobile) + router-outlet -->
+    <label for="app-drawer" class="btn btn-ghost lg:hidden" aria-label="Abrir menú">
+      ☰
+    </label>
+    <router-outlet />
+  </div>
+
+  <div class="drawer-side">
+    <label for="app-drawer" class="drawer-overlay" aria-label="Cerrar menú"></label>
+    <ul class="menu bg-neutral text-neutral-content min-h-full w-64 p-4">
+      <li>
+        <a routerLink="/pedidos" routerLinkActive="menu-active"
+           ariaCurrentWhenActive="page">Pedidos</a>
+      </li>
+    </ul>
+  </div>
+</div>
+```
+
+## Patrón de feature standalone
+
+Plantilla mínima de un componente de feature siguiendo todas las reglas: standalone,
+signals para estado, `inject()` para DI, Reactive Forms para entradas, control flow
+nativo, y daisyUI v5 + Tailwind v4 para estilos.
+
+```ts
+import { Component, computed, inject, signal } from '@angular/core';
+import { CurrencyPipe } from '@angular/common';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { PedidosService } from '../../core/services/pedidos-service';
+
+@Component({
+  selector: 'app-pedidos-list',
+  imports: [ReactiveFormsModule, CurrencyPipe],
+  templateUrl: './pedidos-list.html',
+})
+export class PedidosList {
+  private readonly fb = inject(FormBuilder);
+  private readonly pedidosService = inject(PedidosService);
+
+  readonly filtro = this.fb.nonNullable.control('');
+  readonly filtroValor = toSignal(this.filtro.valueChanges, { initialValue: '' });
+
+  readonly pedidos = signal<Pedido[]>([]);
+  readonly visibles = computed(() =>
+    this.pedidos().filter((p) =>
+      p.cliente.toLowerCase().includes(this.filtroValor().toLowerCase()),
+    ),
+  );
+
+  readonly total = computed(() =>
+    this.visibles().reduce((sum, p) => sum + p.total, 0),
+  );
+}
+```
+
+```html
+<section class="space-y-4 p-4 sm:p-6 md:p-8" animate.enter="page-enter">
+  <header class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-2xl font-bold sm:text-3xl">Pedidos</h1>
+    <button class="btn btn-primary w-full sm:w-auto">Crear pedido</button>
+  </header>
+
+  <fieldset class="fieldset">
+    <legend class="fieldset-legend">Filtrar</legend>
+    <input type="text"
+           class="input input-bordered w-full"
+           placeholder="Buscar por cliente..."
+           [formControl]="filtro" />
+  </fieldset>
+
+  @if (visibles().length) {
+    <!-- Grid responsive: 1 col mobile / 2 col tablet / 3 col desktop -->
+    <ul class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+      @for (pedido of visibles(); track pedido.id; let i = $index) {
+        <li class="card bg-base-200 shadow-sm list-item-enter" [style.--i]="i">
+          <div class="card-body">
+            <h2 class="card-title">Pedido #{{ pedido.id }}</h2>
+            <p class="text-base-content/70">{{ pedido.cliente }}</p>
+            <p class="text-primary font-bold">{{ pedido.total | currency }}</p>
+          </div>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="text-base-content/70">No hay pedidos que coincidan.</p>
+  }
+</section>
+```
+
+### Animaciones (varios enfoques permitidos)
+
+```html
+<!-- Opción A: animate.enter de Angular 21 -->
+<section animate.enter="page-enter">
+  <h1 class="text-3xl font-bold">Pedidos</h1>
+</section>
+
+<!-- Opción B: clase toggleada + transición CSS -->
+<aside [class.is-open]="abierto()" class="transition-transform duration-200">...</aside>
+
+<!-- Opción C: utilidades de Tailwind -->
+<div class="transition hover:scale-105 hover:shadow-md">...</div>
+
+<!-- Opción D: stagger con clase global y --i -->
+@for (item of items(); track item.id; let i = $index) {
+  <article class="card list-item-enter" [style.--i]="i">
+    {{ item.nombre }}
+  </article>
+}
+
+<!-- Opción E: librería JS (GSAP / Motion One) vía bindings -->
+<div (animate.leave)="onLeave($event)">...</div>
+```
+
+> **Importante (Opción E)**: cuando se usa `(animate.leave)` con una librería JS,
+> **es obligatorio** llamar `event.animationComplete()` al terminar — de lo
+> contrario Angular nunca remueve el elemento del DOM.
+>
+> ```ts
+> import { AnimationCallbackEvent } from '@angular/core';
+>
+> onLeave(event: AnimationCallbackEvent) {
+>   gsap.to(event.target, {
+>     opacity: 0,
+>     duration: 0.2,
+>     onComplete: () => event.animationComplete(),
+>   });
+> }
+> ```
+
+## Anti-patrones
+
+```html
+<!-- BAD: color hardcoded -->
+<button class="bg-red-600 text-white px-4 py-2 rounded">Enviar</button>
+
+<!-- GOOD -->
+<button class="btn btn-primary">Enviar</button>
+
+
+<!-- BAD: dark: prefix (daisyUI ya gestiona temas) -->
+<div class="bg-white dark:bg-gray-800">...</div>
+
+<!-- GOOD -->
+<div class="bg-base-100">...</div>
+
+
+<!-- BAD: estilo inline -->
+<p style="color: #C60015; font-weight: 700;">Total</p>
+
+<!-- GOOD -->
+<p class="text-primary font-bold">Total</p>
+
+
+<!-- BAD: <dialog> con [open] (no hay backdrop, ni focus trap, ni cierre con Esc) -->
+<dialog class="modal" [open]="abierto()">...</dialog>
+
+<!-- GOOD: showModal() nativo -->
+<dialog #d class="modal"><div class="modal-box">...</div></dialog>
+<button (click)="d.showModal()">Abrir</button>
+
+
+<!-- BAD: input crudo con utilidades Tailwind reimplementando el componente -->
+<input type="text" class="border border-base-300 rounded px-3 py-2 w-full" />
+
+<!-- GOOD: usar daisyUI input -->
+<input type="text" class="input input-bordered w-full" />
+
+
+<!-- BAD: div estilizado simulando una card -->
+<div class="rounded shadow p-4 bg-base-200">
+  <h2 class="font-bold">Pedido #1234</h2>
+  <p>…</p>
+</div>
+
+<!-- GOOD: componente card de daisyUI -->
+<div class="card bg-base-200 shadow-sm">
+  <div class="card-body">
+    <h2 class="card-title">Pedido #1234</h2>
+    <p>…</p>
+  </div>
+</div>
+
+
+<!-- BAD: ancho fijo en píxeles, rompe en mobile -->
+<div class="w-[600px] flex gap-4">…</div>
+
+<!-- GOOD: full-width con tope máximo y layout responsive -->
+<div class="w-full max-w-2xl flex flex-col gap-3 md:flex-row md:gap-4">…</div>
+
+
+<!-- BAD: grid sin escalado responsive -->
+<ul class="grid grid-cols-3 gap-4">…</ul>
+
+<!-- GOOD: mobile-first con breakpoints -->
+<ul class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">…</ul>
+
+
+<!-- BAD: tabla sin contenedor scrollable, se desborda en mobile -->
+<table class="table">…</table>
+
+<!-- GOOD: tabla envuelta en overflow-x-auto -->
+<div class="overflow-x-auto rounded-box border border-base-300">
+  <table class="table table-zebra">…</table>
+</div>
+
+
+<!-- BAD: tipografía y padding sin escala -->
+<section class="p-8">
+  <h1 class="text-3xl font-bold">Pedidos</h1>
+</section>
+
+<!-- GOOD: escalan según breakpoint -->
+<section class="p-4 sm:p-6 md:p-8">
+  <h1 class="text-2xl font-bold sm:text-3xl">Pedidos</h1>
+</section>
+
+
+<!-- BAD: navegación reinventada con divs -->
+<div class="bg-neutral text-white p-4">
+  <a href="/pedidos" class="block py-2">Pedidos</a>
+</div>
+
+<!-- GOOD: menu + drawer de daisyUI -->
+<ul class="menu bg-neutral text-neutral-content min-h-full w-64 p-4">
+  <li><a routerLink="/pedidos" routerLinkActive="menu-active">Pedidos</a></li>
+</ul>
+
+
+<!-- BAD: spinner SVG/CSS custom -->
+<div class="animate-spin h-6 w-6 border-2 border-primary rounded-full"></div>
+
+<!-- GOOD: loading de daisyUI -->
+<span class="loading loading-spinner loading-md text-primary"></span>
+```
+
+```ts
+// BAD: Signal Forms (API experimental en Angular 21)
+import { form, required } from '@angular/forms/signals';
+this.userForm = form(this.model, (s) => required(s.name));
+
+// GOOD: Reactive Forms estables
+import { FormBuilder, Validators } from '@angular/forms';
+private fb = inject(FormBuilder);
+userForm = this.fb.nonNullable.group({
+  name: ['', Validators.required],
+});
+
+
+// BAD: resource() / httpResource() (experimentales)
+data = resource({ params: () => this.id(), loader: () => fetch(...) });
+
+// GOOD: HttpClient + toSignal()
+private http = inject(HttpClient);
+readonly data = toSignal(this.http.get<Pedido[]>('/api/pedidos'), { initialValue: [] });
+
+
+// BAD: @Input/@Output con decoradores en código nuevo
+@Input() nombre = '';
+@Output() guardar = new EventEmitter<void>();
+
+// GOOD: signal-based
+nombre = input.required<string>();
+guardar = output<void>();
+
+
+// BAD: *ngIf / *ngFor
+<div *ngIf="ok"><span *ngFor="let p of items">{{p}}</span></div>
+
+// GOOD: control flow nativo
+@if (ok) {
+  @for (p of items; track p.id) { <span>{{ p }}</span> }
+}
+```
+
+## Accesibilidad mínima
+
+- Contraste WCAG AA garantizado por los pares `*` / `*-content` de daisyUI.
+- `focus-visible:outline-2 focus-visible:outline-primary` en elementos
+  interactivos custom.
+- `aria-label` en botones de solo ícono.
+- `aria-current="page"` (o `ariaCurrentWhenActive="page"` con `routerLinkActive`)
+  en enlaces de nav activos.
+- Modales con focus trap y cierre con `Esc` — se obtienen automáticamente al
+  abrir el `<dialog>` con `showModal()`.
+- Cada grupo de `radio` debe usar un `name` único.
+- `radial-progress` requiere `role="progressbar"` y `aria-valuenow` (y opcional
+  `aria-valuemin` / `aria-valuemax`).
+- Para componentes ARIA headless (`@angular/aria`), estilar siempre con
+  selectores de atributos: `[aria-expanded="true"]`, `[aria-selected="true"]`,
+  `[aria-pressed="true"]`, `:focus-visible`.
+- Inputs siempre dentro de `<label>` o asociados con `for`/`id` para que el
+  click en la etiqueta enfoque el control.

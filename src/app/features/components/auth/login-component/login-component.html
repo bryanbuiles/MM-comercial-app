@@ -1,0 +1,64 @@
+<section class="flex min-h-dvh w-full items-center justify-center bg-base-100 p-4 sm:p-6 md:p-8"
+  animate.enter="page-enter">
+  <form class="w-full min-w-0 max-w-sm sm:max-w-md" [formGroup]="form" (ngSubmit)="onSubmit($event)" novalidate>
+    <div class="card w-full bg-base-200 shadow-sm">
+      <div class="card-body gap-4 sm:gap-6">
+
+        <header class="space-y-1">
+          <h1 class="card-title text-2xl font-bold sm:text-3xl">Iniciar sesión</h1>
+        </header>
+
+        <!-- Email -->
+        <fieldset class="fieldset min-w-0!">
+          <legend class="fieldset-legend">Correo electrónico</legend>
+          <input id="login-email" type="email" autocomplete="email" formControlName="email" (blur)="onControlBlur()"
+            class="input input-bordered w-full"
+            [class.input-error]="form.controls.email.invalid && form.controls.email.touched"
+            [attr.aria-invalid]="form.controls.email.invalid && form.controls.email.touched" />
+          @if (form.controls.email.invalid && form.controls.email.touched) {
+          @if (form.controls.email.hasError('required')) {
+          <div class="alert alert-error py-2 text-sm" role="alert">
+            <span>El correo es obligatorio.</span>
+          </div>
+          } @else if (form.controls.email.hasError('email')) {
+          <div class="alert alert-error py-2 text-sm" role="alert">
+            <span>Ingresá un correo válido.</span>
+          </div>
+          }
+          }
+        </fieldset>
+
+        <!-- Contraseña -->
+        <fieldset class="fieldset min-w-0!">
+          <legend class="fieldset-legend">Contraseña</legend>
+          <input id="login-password" type="password" autocomplete="current-password" formControlName="password"
+            (blur)="onControlBlur()" class="input input-bordered w-full"
+            [class.input-error]="form.controls.password.invalid && form.controls.password.touched"
+            [attr.aria-invalid]="form.controls.password.invalid && form.controls.password.touched" />
+          @if (form.controls.password.invalid && form.controls.password.touched) {
+          @if (form.controls.password.hasError('required')) {
+          <div class="alert alert-error py-2 text-sm" role="alert">
+            <span>La contraseña es obligatoria.</span>
+          </div>
+          }
+          }
+        </fieldset>
+
+        <button type="submit" class="btn btn-primary btn-block" [disabled]="!form.valid">
+          Ingresar
+        </button>
+
+      </div>
+    </div>
+  </form>
+
+  @if (error(); as msg) {
+  <div class="toast toast-top toast-end z-50">
+    <div class="alert alert-error toast-enter shadow-lg" role="alert" aria-live="assertive">
+      <span>{{ msg }}</span>
+      <button type="button" class="btn btn-ghost btn-sm btn-circle" aria-label="Cerrar notificación"
+        (click)="dismissError()">✕</button>
+    </div>
+  </div>
+  }
+</section>
