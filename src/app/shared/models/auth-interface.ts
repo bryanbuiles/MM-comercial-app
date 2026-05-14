@@ -5,4 +5,5 @@ export interface Login {
 
 export interface LoginResponse {
   accessToken: string;
+  expiresIn: number;
 }

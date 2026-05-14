@@ -1,2 +1,66 @@
-<p>header-component works!</p>
-<router-outlet />
+<div class="flex min-h-screen flex-col bg-base-100">
+  <header class="navbar border-b border-base-300 bg-base-100 px-4 py-2 sm:px-6">
+    <div class="navbar-start min-w-0 flex-1 gap-2 sm:gap-3">
+      <a routerLink="/home" class="flex min-w-0 max-w-full items-center gap-2 sm:gap-3">
+        <img
+          src="/icons/mm-icon-light.svg"
+          width="36"
+          height="36"
+          class="h-8 w-auto shrink-0 sm:h-9"
+          alt="MM Comercial"
+        />
+        <span class="truncate text-lg font-bold text-base-content sm:text-xl">MM Comercial</span>
+      </a>
+    </div>
+
+    <div class="navbar-end shrink-0">
+      <div class="dropdown dropdown-end">
+        <div
+          tabindex="0"
+          role="button"
+          class="btn btn-ghost border-base-300 bg-base-100 normal-case h-auto min-h-11 gap-2 rounded-xl border px-2 py-2 sm:gap-3 sm:px-3"
+          aria-haspopup="menu"
+          aria-label="Menú de usuario"
+        >
+          <div class="avatar avatar-placeholder">
+            <div class="w-9 rounded-full bg-secondary/20 text-sm font-semibold text-secondary sm:w-10 sm:text-base">
+              {{ initials() }}
+            </div>
+          </div>
+          <div class="hidden min-w-0 flex-col items-start text-start sm:flex">
+            <span class="max-w-[9rem] truncate text-sm font-semibold text-base-content sm:max-w-[14rem] sm:text-base">
+              {{ displayName() }}
+            </span>
+            <span class="text-xs text-base-content/70">{{ roleLabel() }}</span>
+          </div>
+          <svg lucideChevronDown class="shrink-0 text-base-content/70" [size]="18"></svg>
+        </div>
+
+        <ul
+          tabindex="-1"
+          class="dropdown-content menu border-base-300 z-50 mt-2 w-52 rounded-box border bg-base-100 p-2 shadow"
+        >
+          <li>
+            <a routerLink="/home" class="flex items-center gap-2">
+              <svg lucideUser class="shrink-0" [size]="18"></svg>
+              Mi perfil
+            </a>
+          </li>
+          <li class="pointer-events-none my-1 px-0 py-0">
+            <div class="divider my-0"></div>
+          </li>
+          <li>
+            <button type="button" class="flex w-full items-center gap-2 text-error" (click)="logout()">
+              <svg lucideLogOut class="shrink-0 text-error" [size]="18"></svg>
+              Cerrar sesión
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1">
+    <router-outlet />
+  </main>
+</div>

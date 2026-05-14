@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService } from 'app/core/services/auth-service';
 
 @Component({
@@ -15,6 +16,7 @@ export class LoginComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -43,6 +45,7 @@ export class LoginComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
+          this.router.navigate(['/home']);
           this.loading.set(false);
         },
         error: (err: HttpErrorResponse) => {
