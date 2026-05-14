@@ -1,1 +1,24 @@
-<p>home-component works!</p>
+<div class="flex min-h-full flex-col bg-base-100" animate.enter="page-enter">
+  <section class="flex flex-1 flex-col gap-6 p-4 sm:gap-8 sm:p-6 md:p-8">
+    <div class="mx-auto w-full max-w-6xl space-y-6 sm:space-y-8">
+      <header class="space-y-2">
+        <h1 class="text-2xl font-bold sm:text-3xl">¡Hola, {{ saludoNombre() }}!</h1>
+        <p class="text-sm text-base-content/70 sm:text-base">
+          Selecciona una opción.
+        </p>
+      </header>
+      <ul class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3 lg:gap-6">
+        @for (card of cards; track card.title) {
+        <li class="h-full min-h-0">
+          <app-card-dashboard-component [dataCard]="card" />
+        </li>
+        }
+      </ul>
+    </div>
+  </section>
+  <footer class="mt-auto border-t border-base-300 py-4 sm:py-6">
+    <p class="text-center text-xs text-base-content/60 sm:text-sm">
+      © 2026 MM Comercial. Todos los derechos reservados. Hecho con amor para Maria Isabel.
+    </p>
+  </footer>
+</div>

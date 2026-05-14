@@ -1,0 +1,43 @@
+<div class="card bg-base-200 shadow-sm h-full">
+  <div class="card-body flex flex-col gap-4 p-4 sm:p-6">
+    <div class="flex flex-row items-start gap-4">
+      <div [class]="iconBoxClass()">
+        @switch (dataCard().icon) {
+          @case ('file-text') {
+            <svg lucideFileText [size]="28" aria-hidden="true"></svg>
+          }
+          @case ('users') {
+            <svg lucideUsers [size]="28" aria-hidden="true"></svg>
+          }
+          @case ('building-2') {
+            <svg lucideBuilding2 [size]="28" aria-hidden="true"></svg>
+          }
+          @case ('package') {
+            <svg lucidePackage [size]="28" aria-hidden="true"></svg>
+          }
+          @case ('history') {
+            <svg lucideHistory [size]="28" aria-hidden="true"></svg>
+          }
+        }
+      </div>
+      <div class="min-w-0 flex-1 space-y-1">
+        <h2 class="card-title text-lg font-semibold sm:text-xl">{{ dataCard().title }}</h2>
+        <p class="text-sm text-base-content/70 sm:text-base">{{ dataCard().description }}</p>
+      </div>
+    </div>
+    <div class="card-actions mt-auto justify-stretch p-0">
+      <button
+        type="button"
+        [class]="buttonClass()"
+        [class.btn-disabled]="!hasRoute()"
+        [disabled]="!hasRoute()"
+        [attr.aria-disabled]="!hasRoute() ? 'true' : null"
+        [attr.title]="hasRoute() ? null : 'Próximamente'"
+        (click)="onClickButton()"
+      >
+        <span>{{ dataCard().buttonName }}</span>
+        <svg lucideArrowRight class="shrink-0" [size]="18" aria-hidden="true"></svg>
+      </button>
+    </div>
+  </div>
+</div>
