@@ -1,4 +1,4 @@
-<div class="card bg-base-200 shadow-sm h-full">
+<div class="card card-border border-base-300 bg-base-100 shadow-sm h-full">
   <div class="card-body flex flex-col gap-4 p-4 sm:p-6">
     <div class="flex flex-row items-start gap-4">
       <div [class]="iconBoxClass()">
@@ -25,7 +25,7 @@
         <p class="text-sm text-base-content/70 sm:text-base">{{ dataCard().description }}</p>
       </div>
     </div>
-    <div class="card-actions mt-auto justify-stretch p-0">
+    <div class="card-actions mt-auto justify-start p-0">
       <button
         type="button"
         [class]="buttonClass()"
@@ -36,7 +36,7 @@
         (click)="onClickButton()"
       >
         <span>{{ dataCard().buttonName }}</span>
-        <svg lucideArrowRight class="shrink-0" [size]="18" aria-hidden="true"></svg>
+        <svg lucideArrowRight class="shrink-0" [size]="16" aria-hidden="true"></svg>
       </button>
     </div>
   </div>

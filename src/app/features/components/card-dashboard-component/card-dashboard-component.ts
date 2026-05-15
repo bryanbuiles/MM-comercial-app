@@ -19,14 +19,11 @@ const ICON_BOX_BY_THEME: Record<CardDashboardColorTheme, string> = {
 };
 
 const BUTTON_BY_THEME: Record<CardDashboardColorTheme, string> = {
-  success:
-    'btn btn-ghost w-full min-h-11 justify-between gap-2 text-success sm:max-w-none',
-  secondary:
-    'btn btn-ghost w-full min-h-11 justify-between gap-2 text-secondary sm:max-w-none',
-  info: 'btn btn-ghost w-full min-h-11 justify-between gap-2 text-info sm:max-w-none',
-  warning:
-    'btn btn-ghost w-full min-h-11 justify-between gap-2 text-warning sm:max-w-none',
-  error: 'btn btn-ghost w-full min-h-11 justify-between gap-2 text-error sm:max-w-none',
+  success: 'btn btn-soft btn-success btn-sm sm:btn-md gap-2',
+  secondary: 'btn btn-soft btn-secondary btn-sm sm:btn-md gap-2',
+  info: 'btn btn-soft btn-info btn-sm sm:btn-md gap-2',
+  warning: 'btn btn-soft btn-warning btn-sm sm:btn-md gap-2',
+  error: 'btn btn-soft btn-error btn-sm sm:btn-md gap-2',
 };
 
 @Component({
