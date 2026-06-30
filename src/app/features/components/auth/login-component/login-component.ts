@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from 'app/core/services/auth-service';
 
 @Component({
@@ -17,6 +17,7 @@ export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -45,7 +46,7 @@ export class LoginComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.router.navigate(['/home']);
+          this.router.navigateByUrl(this.resolvePostLoginUrl(), { replaceUrl: true });
           this.loading.set(false);
         },
         error: (err: HttpErrorResponse) => {
@@ -57,6 +58,14 @@ export class LoginComponent {
 
   dismissError(): void {
     this.error.set(null);
+  }
+
+  private resolvePostLoginUrl(): string {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    if (returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')) {
+      return returnUrl;
+    }
+    return '/home';
   }
 
   private mapLoginError(err: HttpErrorResponse): string {
