@@ -3,7 +3,6 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./src",
     "strict": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
@@ -17,13 +16,13 @@
     "module": "preserve",
     "paths": {
       "@env/*": [
-        "environments/*"
+        "./src/environments/*"
       ],
       "@shared/*": [
-        "app/shared/*"
+        "./src/app/shared/*"
       ],
       "@core/*": [
-        "app/core/*"
+        "./src/app/core/*"
       ]
     }
   },
