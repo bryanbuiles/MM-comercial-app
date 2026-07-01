@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Sistema de Diseño — MM Comercial App
 
-App Angular 21 + Tailwind CSS v4 + daisyUI v5. Tema único `plasticasMM` definido en
+App Angular 22 + Tailwind CSS v4 + daisyUI v5. Tema único `plasticasMM` definido en
 `src/styles.scss` (rojo corporativo `#C60015`).
 
 ## Reglas obligatorias
@@ -31,27 +31,52 @@ App Angular 21 + Tailwind CSS v4 + daisyUI v5. Tema único `plasticasMM` definid
 5. **Layout**: usar `bg-base-100` para fondos, `bg-base-200` para superficies
    secundarias (cards), `bg-base-300` para bordes/divisores.
 6. **Animaciones**: enfoque libre — pueden usarse `animate.enter`/`animate.leave`
-   (Angular 21), transiciones CSS toggleadas con `[class.x]`, librerías JS
+   (Angular 22), transiciones CSS toggleadas con `[class.x]`, librerías JS
    (GSAP, Motion One), o las clases globales reutilizables (`page-enter`,
    `list-item-enter`, `modal-enter`, `toast-enter`, `leave`) ya definidas en
    `styles.scss`. Elegir lo más simple para cada caso.
-7. **Formularios**: usar **Reactive Forms** (`ReactiveFormsModule`, `FormBuilder`,
-   `FormGroup`, `FormControl`, `Validators`, `FormArray`). NO usar Signal Forms
-   (`@angular/forms/signals`) — API experimental en Angular 21. NO usar
-   Template-driven Forms para formularios con validación o estructura compleja.
-8. **Componentes y reactividad** (APIs estables únicamente):
+7. **Formularios** (Angular 22):
+   - **Preferir Signal Forms** (`@angular/forms/signals`: `form`, `FormField`,
+     `[formField]`, validadores del schema).
+   - **Reactive Forms** (`FormBuilder`, `FormGroup`, etc.) solo con razón concreta
+     documentada en el PR/código (formularios existentes, dependencia de APIs no
+     migradas).
+   - **NO** usar Template-driven Forms para validación o estructura compleja.
+   - Con daisyUI: mantener `fieldset` + clases `input`/`select`/`textarea`/`checkbox`;
+     enlazar con `[formField]`, no `[formControl]`.
+   - **NO** usar `null`/`undefined` como valor inicial en modelos de Signal Forms
+     (usar `''`, `0`, `[]`).
+8. **Componentes y reactividad** (APIs estables):
    - **Standalone por defecto** (Angular 19+). No usar `NgModule`.
-   - **Estado**: `signal()`, `computed()`, `linkedSignal()`. NO usar `resource()`
-     ni `httpResource()` — APIs experimentales.
+   - **Estado**: `signal()`, `computed()`, `linkedSignal()`.
+   - **Datos async**: `resource()`, `httpResource()`, `rxResource()` (estables en
+     v22). Preferir `httpResource()` para GET declarativo con interceptores;
+     `rxResource()` si ya hay Observables; `HttpClient` + `toSignal()` sigue válido
+     en código existente.
+   - **Change detection**: OnPush es el **default** en componentes nuevos — no
+     declarar `changeDetection: OnPush` salvo claridad explícita. Usar
+     `ChangeDetectionStrategy.Eager` solo cuando el componente lo requiera
+     (callbacks externos, mutación in-place, migración). El estado debe vivir en
+     **signals** para que la vista actualice.
+   - **Zoneless**: apps nuevas son zoneless por defecto (desde v21); coherente con
+     OnPush + signals.
    - **Inputs/outputs signal-based**: `input()`, `input.required()`, `output()`,
      `model()`. NO usar `@Input`/`@Output`/`EventEmitter` en código nuevo.
    - **Control de flujo nativo**: `@if` / `@for` (con `track` obligatorio) /
      `@switch`. NO usar `*ngIf` / `*ngFor` / `*ngSwitch`.
-   - **DI con `inject()`**. Servicios `@Injectable({ providedIn: 'root' })`.
-   - **HTTP**: `HttpClient` con observables; convertir a signals con `toSignal()`
-     cuando se necesite consumirlo en plantillas. No `resource()`/`httpResource()`.
+   - **DI con `inject()`**. Preferir `@Service()` para singletons root.
+     `@Injectable({ providedIn: 'root' })` sigue válido si hace falta configuración
+     avanzada.
+   - **DI async**: `injectAsync()` para servicios pesados cargados on-demand
+     (code splitting).
    - **Naming**: no agregar sufijo `Component` a la clase (`PedidosList`, no
      `PedidosListComponent`).
+   - **Plantillas** (v22):
+     - Spread/rest en literales y llamadas: `{ ...styles }`, `[...items, x]`.
+     - `@switch` con casos apilados y `@default never;` para unions exhaustivas.
+     - Arrow functions inline en bindings de evento (funciones cortas; lógica
+       compleja en la clase).
+     - Comentarios `//` y `/* */` dentro de elementos HTML de plantilla.
 9. **Responsive mobile-first — obligatorio.** Toda interfaz nueva debe verse
    y funcionar correctamente en mobile (`<640px`), tablet (`md` 768px) y
    desktop (`lg` 1024px+). Reglas concretas:
@@ -92,6 +117,9 @@ App Angular 21 + Tailwind CSS v4 + daisyUI v5. Tema único `plasticasMM` definid
 11. **Routing**: features cargadas con lazy loading (`loadChildren` o
     `loadComponent`). Solo las rutas raíz / shell son eager. Los componentes
     nunca se acoplan entre features.
+12. **Testing**: tests unitarios con **Vitest** (`ng test`), no Karma/Jasmine.
+    En entorno zoneless, usar `await fixture.whenStable()` / `detectChanges()`
+    según corresponda para sincronizar actualizaciones asíncronas.
 
 ## Estructura del proyecto
 
@@ -226,17 +254,17 @@ mobile, automáticos en desktop.
   <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
     <fieldset class="fieldset">
       <legend class="fieldset-legend">Nombre</legend>
-      <input class="input input-bordered w-full" [formControl]="nombre" />
+      <input class="input input-bordered w-full" [formField]="nombre" />
     </fieldset>
     <fieldset class="fieldset">
       <legend class="fieldset-legend">NIT</legend>
-      <input class="input input-bordered w-full" [formControl]="nit" />
+      <input class="input input-bordered w-full" [formField]="nit" />
     </fieldset>
   </div>
 
   <fieldset class="fieldset">
     <legend class="fieldset-legend">Dirección</legend>
-    <input class="input input-bordered w-full" [formControl]="direccion" />
+    <input class="input input-bordered w-full" [formField]="direccion" />
   </fieldset>
 
   <div class="flex flex-col gap-2 md:flex-row md:justify-end">
@@ -531,32 +559,37 @@ con un `<label for="...">` (no manipular el `checked` desde TS).
 ## Patrón de feature standalone
 
 Plantilla mínima de un componente de feature siguiendo todas las reglas: standalone,
-signals para estado, `inject()` para DI, Reactive Forms para entradas, control flow
+signals para estado, `inject()` para DI, Signal Forms para entradas, control flow
 nativo, y daisyUI v5 + Tailwind v4 para estilos.
 
 ```ts
 import { Component, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { form, FormField } from '@angular/forms/signals';
 import { PedidosService } from '../../core/services/pedidos-service';
+
+interface Pedido {
+  id: number;
+  cliente: string;
+  total: number;
+}
 
 @Component({
   selector: 'app-pedidos-list',
-  imports: [ReactiveFormsModule, CurrencyPipe],
+  imports: [FormField, CurrencyPipe],
   templateUrl: './pedidos-list.html',
 })
 export class PedidosList {
-  private readonly fb = inject(FormBuilder);
   private readonly pedidosService = inject(PedidosService);
 
-  readonly filtro = this.fb.nonNullable.control('');
-  readonly filtroValor = toSignal(this.filtro.valueChanges, { initialValue: '' });
+  readonly filtroModel = signal({ busqueda: '' });
+  readonly filtroForm = form(this.filtroModel);
+  readonly busqueda = computed(() => this.filtroModel().busqueda);
 
   readonly pedidos = signal<Pedido[]>([]);
   readonly visibles = computed(() =>
     this.pedidos().filter((p) =>
-      p.cliente.toLowerCase().includes(this.filtroValor().toLowerCase()),
+      p.cliente.toLowerCase().includes(this.busqueda().toLowerCase()),
     ),
   );
 
@@ -578,7 +611,7 @@ export class PedidosList {
     <input type="text"
            class="input input-bordered w-full"
            placeholder="Buscar por cliente..."
-           [formControl]="filtro" />
+           [formField]="filtroForm.busqueda" />
   </fieldset>
 
   @if (visibles().length) {
@@ -603,7 +636,7 @@ export class PedidosList {
 ### Animaciones (varios enfoques permitidos)
 
 ```html
-<!-- Opción A: animate.enter de Angular 21 -->
+<!-- Opción A: animate.enter de Angular 22 -->
 <section animate.enter="page-enter">
   <h1 class="text-3xl font-bold">Pedidos</h1>
 </section>
@@ -748,24 +781,53 @@ export class PedidosList {
 ```
 
 ```ts
-// BAD: Signal Forms (API experimental en Angular 21)
-import { form, required } from '@angular/forms/signals';
-this.userForm = form(this.model, (s) => required(s.name));
-
-// GOOD: Reactive Forms estables
+// BAD: Reactive Forms en formulario nuevo sin justificación
 import { FormBuilder, Validators } from '@angular/forms';
 private fb = inject(FormBuilder);
 userForm = this.fb.nonNullable.group({
   name: ['', Validators.required],
 });
 
+// GOOD: Signal Forms (estable en Angular 22)
+import { form, required } from '@angular/forms/signals';
+readonly userModel = signal({ name: '' });
+readonly userForm = form(this.userModel, (s) => required(s.name));
 
-// BAD: resource() / httpResource() (experimentales)
-data = resource({ params: () => this.id(), loader: () => fetch(...) });
 
-// GOOD: HttpClient + toSignal()
+// BAD: switchMap + toSignal manual para fetch HTTP simple
 private http = inject(HttpClient);
-readonly data = toSignal(this.http.get<Pedido[]>('/api/pedidos'), { initialValue: [] });
+readonly data = toSignal(
+  this.id$.pipe(switchMap((id) => this.http.get<Pedido[]>(`/api/pedidos/${id}`))),
+  { initialValue: [] },
+);
+
+// GOOD: httpResource() declarativo
+import { httpResource } from '@angular/common/http';
+readonly pedidos = httpResource<Pedido[]>(() => '/api/pedidos');
+
+
+// BAD: changeDetection: Eager sin razón en código nuevo
+@Component({ changeDetection: ChangeDetectionStrategy.Eager, ... })
+
+// GOOD: OnPush es el default — no declarar salvo claridad explícita
+@Component({ ... })
+
+
+// BAD: mutar estado in-place sin signals (no actualiza vista OnPush)
+this.items.push(nuevo);
+
+// GOOD: actualizar con signal
+this.items.update((list) => [...list, nuevo]);
+
+
+// BAD: @Injectable para singleton simple en código nuevo
+@Injectable({ providedIn: 'root' })
+export class PedidosService { ... }
+
+// GOOD: @Service() para singletons root
+import { Service } from '@angular/core';
+@Service()
+export class PedidosService { ... }
 
 
 // BAD: @Input/@Output con decoradores en código nuevo
@@ -789,6 +851,10 @@ guardar = output<void>();
 ## Accesibilidad mínima
 
 - Contraste WCAG AA garantizado por los pares `*` / `*-content` de daisyUI.
+- **Jerarquía de componentes accesibles:** daisyUI primero (regla 1) → si el patrón
+  no existe o requiere lógica accesible custom (combobox, tree, menú contextual
+  complejo), usar **Angular Aria estable** (`@angular/aria`) + estilos daisyUI/Tailwind.
+  Instalar `@angular/aria` cuando se use. Integración con Signal Forms soportada en v22.
 - `focus-visible:outline-2 focus-visible:outline-primary` en elementos
   interactivos custom.
 - `aria-label` en botones de solo ícono.
@@ -799,7 +865,7 @@ guardar = output<void>();
 - Cada grupo de `radio` debe usar un `name` único.
 - `radial-progress` requiere `role="progressbar"` y `aria-valuenow` (y opcional
   `aria-valuemin` / `aria-valuemax`).
-- Para componentes ARIA headless (`@angular/aria`), estilar siempre con
+- Para componentes Angular Aria headless (`@angular/aria`), estilar siempre con
   selectores de atributos: `[aria-expanded="true"]`, `[aria-selected="true"]`,
   `[aria-pressed="true"]`, `:focus-visible`.
 - Inputs siempre dentro de `<label>` o asociados con `for`/`id` para que el

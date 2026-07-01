@@ -7,7 +7,7 @@ export const DASHBOARD_CARDS = [
     description:
       'Crea cotizaciones personalizadas para tus clientes de forma rápida y profesional.',
     buttonName: 'Ir al generador',
-    router: '/home',
+    router: '/home/cotizacion',
     colorTheme: 'success',
   },
   {
