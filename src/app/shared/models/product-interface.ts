@@ -16,4 +16,12 @@ export interface Product {
     'DECORATION';
     originalPrice: number;
     originalPriceRestore: number;
+    freight: number;
 }
+
+export interface ProductFormArray {
+    nameProduct: string;
+    quantity: number;
+    price: number;
+}
+

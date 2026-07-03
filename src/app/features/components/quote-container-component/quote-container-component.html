@@ -1,0 +1,118 @@
+<section>
+    <form>
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend">Empresa</legend>
+
+            <div class="dropdown w-full" [class.dropdown-open]="showCompanyDropdown()">
+                <input type="text" class="input input-bordered w-full" placeholder="Buscar o escribir empresa..."
+                    [formField]="quoteForm.companyName" (focus)="openCompanyDropdown()"
+                    (input)="openCompanyDropdown()" />
+
+                @if (showCompanyDropdown()) {
+                <ul class="dropdown-content menu bg-base-100 rounded-box z-10 w-full p-2 shadow">
+                    @for (empresa of filteredCompanies(); track empresa.id) {
+                    <li>
+                        <button type="button" (click)="SetCompany(empresa)">
+                            {{ empresa.name }}
+                        </button>
+                    </li>
+                    }
+                </ul>
+                }
+            </div>
+        </fieldset>
+
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend input-md">Nombre persona a quien va dirigido</legend>
+            <input type="text" class="input" placeholder="Nombre" [formField]="quoteForm.name"
+                [class.input-error]="quoteForm.name().invalid() && quoteForm.name().touched()" />
+            @if (quoteForm.name().invalid() && quoteForm.name().touched()) {
+            @for (error of quoteForm.name().errors(); track error.kind) {
+            <p class="label">{{ error.message }}</p>
+            }
+            }
+        </fieldset>
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend input-md">Cargo</legend>
+            <input type="text" class="input" placeholder="Cargo" [formField]="quoteForm.position"
+                [class.input-error]="quoteForm.position().invalid() && quoteForm.position().touched()" />
+            @if (quoteForm.position().invalid() && quoteForm.position().touched()) {
+            @for (error of quoteForm.position().errors(); track error.kind) {
+            <p class="label">{{ error.message }}</p>
+            }
+            }
+        </fieldset>
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend input-md">Consecutivo</legend>
+            <input type="text" class="input" placeholder="Concecutivo" [formField]="quoteForm.consecutive" />
+            <p class="label">Optional</p>
+        </fieldset>
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend input-md">Ciudad a la que va dirigido</legend>
+            <select class="select" [formField]="quoteForm.city">
+                <option disabled selected>Seleccione una ciudad</option>
+                @for (city of cities.value(); track city.id ) {
+                <option>{{ city.name }}</option>
+                }
+            </select>
+            @if (quoteForm.city().invalid() && quoteForm.city().touched()) {
+            @for (error of quoteForm.city().errors(); track error.kind) {
+            <p class="label">{{ error.message }}</p>
+            }
+            }
+        </fieldset>
+        <div>
+            <h4>Agregue productos a la cotizacion</h4>
+            @for (productField of quoteForm.products; track productField; let rowIndex = $index) {
+            <fieldset class="fieldset">
+                <legend class="fieldset-legend">Seleccione un producto</legend>
+
+                <div class="dropdown w-full" [class.dropdown-open]="showProductDropdown(rowIndex)">
+                    <input type="text" class="input input-bordered w-full" placeholder="Buscar y selecionar producto"
+                        [formField]="productField.nameProduct" (focus)="openProductDropdown(rowIndex)"
+                        (input)="openProductDropdown(rowIndex)" />
+
+                    @if (showProductDropdown(rowIndex)) {
+                    <ul class="dropdown-content menu bg-base-100 rounded-box z-10 w-full p-2 shadow">
+                        @for (catalogProduct of filteredProducts()[rowIndex]; track catalogProduct.id) {
+                        <li>
+                            <button type="button" (mousedown)="$event.preventDefault()"
+                                (click)="setProduct(productField, catalogProduct)">
+                                {{ catalogProduct.name }}
+                            </button>
+                        </li>
+                        }
+                    </ul>
+                    }
+                </div>
+            </fieldset>
+            <fieldset class="fieldset">
+                <legend class="fieldset-legend input-md">Precio</legend>
+                <input type="number" class="input" placeholder="Precio/Uunidad"
+                    [formField]="productField.price"
+                    [class.input-error]="productField.price().invalid() && productField.price().touched()" />
+                @if (productField.price().invalid() && productField.price().touched()) {
+                @for (error of productField.price().errors(); track error.kind) {
+                <p class="label">{{ error.message }}</p>
+                }
+                }
+            </fieldset>
+            <fieldset class="fieldset">
+                <legend class="fieldset-legend input-md">Cantidad</legend>
+                <input type="number" class="input" placeholder="Cantidad"
+                    [formField]="productField.quantity"
+                    [class.input-error]="productField.quantity().invalid() && productField.quantity().touched()" />
+                @if (productField.quantity().invalid() && productField.quantity().touched()) {
+                @for (error of productField.quantity().errors(); track error.kind) {
+                <p class="label">{{ error.message }}</p>
+                }
+                }
+            </fieldset>
+            }
+        </div>
+        <button type="button" class="btn btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
+            (click)="addProduct()">Agregar otro producto</button>
+
+
+    </form>
+</section>
