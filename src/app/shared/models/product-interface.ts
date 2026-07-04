@@ -19,7 +19,13 @@ export interface Product {
     freight: number;
 }
 
+export interface ProductPlus extends Product {
+    quantity: number;
+    freight: number;
+}
+
 export interface ProductFormArray {
+    productId: number;
     nameProduct: string;
     quantity: number;
     price: number;

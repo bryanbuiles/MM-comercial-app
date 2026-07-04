@@ -1,10 +1,13 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { applyEach, debounce, form, FormField, maxLength, min, minLength, required, SchemaPathTree } from '@angular/forms/signals';
+import { firstValueFrom } from 'rxjs';
 import { Enterprise } from '@shared/models/enterprise-interface';
-import { Product, ProductFormArray } from '@shared/models/product-interface';
+import { Product, ProductFormArray, ProductPlus } from '@shared/models/product-interface';
+import { AddonService } from '@shared/services/addon-service';
 import { CitiesService } from '@shared/services/cities-service';
 import { CompaniesService } from '@shared/services/companies-service';
+import { FreightService } from '@shared/services/freight-service';
 import { ProductsService } from '@shared/services/products-service';
 
 
@@ -37,6 +40,8 @@ export class QuoteContainerComponent {
   private readonly productService = inject(ProductsService);
   private readonly citiesService = inject(CitiesService);
   private readonly companiesService = inject(CompaniesService);
+  private readonly addonService = inject(AddonService);
+  private readonly freightService = inject(FreightService);
 
   Products = rxResource({
     stream: () => this.productService.getAllProducts()
@@ -49,6 +54,28 @@ export class QuoteContainerComponent {
   cities = rxResource({
     stream: () => this.citiesService.getAllCities()
   });
+
+  addons = rxResource({
+    params: () => {
+      const id = this.productId();
+      return id > 0 ? id : undefined;
+    },
+    stream: ({ params: productId }) => this.addonService.getAddonByProduct(productId)
+  });
+
+  freight = rxResource({
+    params: () => {
+      const productId = this.productId();
+      const cityId = this.cityId();
+      return productId > 0 && cityId > 0
+        ? { productId, cityId }
+        : undefined;
+    },
+    stream: ({ params }) =>
+      this.freightService.getFreight(params.productId, params.cityId),
+  });
+
+
 
   readonly filteredCompanies = computed(() => {
     const query = this.quoteForm.companyName().value().trim().toLowerCase();
@@ -71,13 +98,30 @@ export class QuoteContainerComponent {
   readonly companyDropdownOpen = signal(false);
   readonly productDropdownIndex = signal<number | null>(null);
   private readonly blockProductDropdownOpen = signal(false);
+  private productId = signal(0);
+  private cityId = signal(0);
 
   readonly showCompanyDropdown = computed(
     () => this.companyDropdownOpen() && this.filteredCompanies().length > 0,
   );
   todayDate = signal<Date>(new Date());
 
-  productsList = signal<Product[]>([]);
+  private readonly confirmedByRow = signal<Map<number, ProductPlus>>(new Map());
+
+  readonly productsList = computed(() => [...this.confirmedByRow().values()]);
+
+  readonly canAddProducts = computed(() =>
+    this.quoteForm.companyName().valid() &&
+    this.quoteForm.name().valid() &&
+    this.quoteForm.position().valid() &&
+    this.quoteForm.consecutive().valid() &&
+    this.quoteForm.city().valid(),
+  );
+
+  readonly canAddAnotherProduct = computed(() => {
+    const lastIndex = this.formModel().products.length - 1;
+    return lastIndex >= 0 && this.confirmedByRow().has(lastIndex);
+  });
 
   formModel = signal<ProductForm>({
     name: '',
@@ -85,8 +129,8 @@ export class QuoteContainerComponent {
     city: '',
     position: '',
     consecutive: '',
-    products: [{ nameProduct: '', quantity: 0, price: 0 }],
-    addonProducts: [{ nameProduct: '', price: 0 }]
+    products: [{ productId: 0, nameProduct: '', quantity: 0, price: 0 }],
+    addonProducts: [{ productId: 0, nameProduct: '', price: 0 }],
   });
 
   quoteForm = form(this.formModel, (schemaPath) => {
@@ -117,7 +161,73 @@ export class QuoteContainerComponent {
     this.quoteForm.companyName().value.set(company.name);
     this.quoteForm.name().value.set(company.nameAssistant);
     this.quoteForm.city().value.set(company.city.name);
+    this.cityId.set(company.city.id);
     this.companyDropdownOpen.set(false);
+  }
+
+  onCityChange(cityName: string): void {
+    const city = this.cities.value()?.find((c) => c.name === cityName);
+    this.cityId.set(city?.id ?? 0);
+  }
+
+  isRowConfirmed(rowIndex: number): boolean {
+    return this.confirmedByRow().has(rowIndex);
+  }
+
+  isRowUpToDate(
+    productField: (typeof this.quoteForm.products)[number],
+    rowIndex: number,
+  ): boolean {
+    return this.isRowConfirmed(rowIndex) && !productField().dirty();
+  }
+
+  hasPendingChanges(
+    productField: (typeof this.quoteForm.products)[number],
+    rowIndex: number,
+  ): boolean {
+    return this.isRowConfirmed(rowIndex) && productField().dirty();
+  }
+
+  isFreightPendingForRow(rowIndex: number): boolean {
+    const row = this.formModel().products[rowIndex];
+    const lastIndex = this.formModel().products.length - 1;
+    return (
+      rowIndex === lastIndex &&
+      row.productId > 0 &&
+      this.cityId() > 0 &&
+      this.freight.isLoading()
+    );
+  }
+
+  private async resolveFreight(
+    productId: number,
+    cityId: number,
+    fallback: number,
+  ): Promise<number> {
+    if (productId <= 0 || cityId <= 0) {
+      return fallback;
+    }
+
+    this.productId.set(productId);
+
+    const resourceReady =
+      !this.freight.isLoading() &&
+      this.freight.hasValue() &&
+      this.productId() === productId &&
+      this.cityId() === cityId;
+
+    if (resourceReady) {
+      return this.freight.value()!.freight;
+    }
+
+    try {
+      const data = await firstValueFrom(
+        this.freightService.getFreight(productId, cityId),
+      );
+      return data.freight;
+    } catch {
+      return fallback;
+    }
   }
 
   showProductDropdown(index: number): boolean {
@@ -141,17 +251,62 @@ export class QuoteContainerComponent {
   ): void {
     this.blockProductDropdownOpen.set(true);
     this.productDropdownIndex.set(null);
+    productField.productId().value.set(product.id);
     productField.nameProduct().value.set(product.name);
     productField.price().value.set(product.originalPrice);
     queueMicrotask(() => this.blockProductDropdownOpen.set(false));
-    this.productsList.set([...this.productsList(), product]);
+    this.productId.set(product.id);
+  }
+
+  async confirmProductRow(
+    productField: (typeof this.quoteForm.products)[number],
+    rowIndex: number,
+  ): Promise<void> {
+    productField().markAsTouched();
+
+    if (productField().invalid()) {
+      return;
+    }
+
+    const row = this.formModel().products[rowIndex];
+    const catalogProduct = this.Products.value()?.find((p) => p.id === row.productId);
+
+    if (!catalogProduct) {
+      return;
+    }
+
+    const resolvedCityId = this.cityId() > 0
+      ? this.cityId()
+      : (this.cities.value()?.find((c) => c.name === this.quoteForm.city().value())?.id ?? 0);
+
+    this.productId.set(row.productId);
+
+    const freight = await this.resolveFreight(
+      row.productId,
+      resolvedCityId,
+      catalogProduct.freight,
+    );
+
+    const productPlus: ProductPlus = {
+      ...catalogProduct,
+      quantity: productField.quantity().value(),
+      freight,
+    };
+
+    this.confirmedByRow.update((map) => {
+      const next = new Map(map);
+      next.set(rowIndex, productPlus);
+      return next;
+    });
+
+    productField().reset();
   }
 
   addProduct() {
     this.formModel.update(model => ({
       ...model,
-      products: [...model.products, { nameProduct: '', quantity: 0, price: 0 }],
-      addonProducts: [...model.addonProducts, { nameProduct: '', price: 0 }],
+      products: [...model.products, { productId: 0, nameProduct: '', quantity: 0, price: 0 }],
+      addonProducts: [...model.addonProducts, { productId: 0, nameProduct: '', price: 0 }],
     }));
   }
 
