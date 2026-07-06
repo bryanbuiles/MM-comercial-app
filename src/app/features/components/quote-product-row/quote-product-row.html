@@ -1,0 +1,91 @@
+<div class="space-y-4 rounded-box border border-base-300 p-4 sm:p-6">
+    <fieldset class="fieldset">
+        <legend class="fieldset-legend">Seleccione un producto</legend>
+
+        <div class="dropdown w-full" [class.dropdown-open]="showProductDropdown()">
+            <input type="text" class="input input-bordered w-full"
+                placeholder="Buscar y selecionar producto" [formField]="productForm.nameProduct"
+                (focus)="onProductSearchFocus()"
+                (blur)="onProductSearchBlur()"
+                (input)="onProductSearchInput($event)" />
+
+            @if (showProductDropdown()) {
+            <ul class="dropdown-content menu bg-base-100 rounded-box z-10 w-full p-2 shadow">
+                @for (catalogProduct of filteredProducts(); track catalogProduct.id) {
+                <li>
+                    <button type="button" (mousedown)="$event.preventDefault()"
+                        (click)="setProduct(catalogProduct)">
+                        {{ catalogProduct.name }}
+                    </button>
+                </li>
+                }
+            </ul>
+            }
+        </div>
+    </fieldset>
+    <fieldset class="fieldset">
+        <legend class="fieldset-legend input-md">Color</legend>
+        <select class="select select-bordered w-full" [formField]="productForm.color"
+            [class.select-error]="productForm.color().invalid() && productForm.color().touched()">
+            <option disabled selected value="">Seleccione un color</option>
+            @for (color of colors(); track color.id) {
+            <option [value]="color.name">{{ color.name }}</option>
+            }
+        </select>
+        @if (productForm.color().invalid() && productForm.color().touched()) {
+        @for (error of productForm.color().errors(); track error.kind) {
+        <p class="label">{{ error.message }}</p>
+        }
+        }
+    </fieldset>
+    <fieldset class="fieldset">
+        <legend class="fieldset-legend input-md">Precio</legend>
+        <input type="number" class="input input-bordered w-full" placeholder="Precio/Uunidad"
+            [formField]="productForm.price"
+            [class.input-error]="productForm.price().invalid() && productForm.price().touched()" />
+        @if (productForm.price().invalid() && productForm.price().touched()) {
+        @for (error of productForm.price().errors(); track error.kind) {
+        <p class="label">{{ error.message }}</p>
+        }
+        }
+    </fieldset>
+    @if (hasRestorePrice()) {
+    <label class="label">
+        <input type="checkbox" [formField]="productForm.isRestore" class="checkbox"
+            (change)="onRestoreToggle()" />
+        ¿Es material Recuperado?
+    </label>
+    }
+    <fieldset class="fieldset">
+        <legend class="fieldset-legend input-md">Cantidad</legend>
+        <input type="number" class="input input-bordered w-full" placeholder="Cantidad"
+            [formField]="productForm.quantity"
+            [class.input-error]="productForm.quantity().invalid() && productForm.quantity().touched()" />
+        @if (productForm.quantity().invalid() && productForm.quantity().touched()) {
+        @for (error of productForm.quantity().errors(); track error.kind) {
+        <p class="label">{{ error.message }}</p>
+        }
+        }
+    </fieldset>
+    @if (selectedProduct() && freight.error()) {
+    <div class="alert alert-error">
+        <span>No se pudo calcular el flete. Intente de nuevo.</span>
+    </div>
+    }
+    <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <button type="button" class="btn btn-primary w-full md:w-auto"
+            [disabled]="!canConfirmProduct()"
+            (click)="confirmProduct()">
+            @if (selectedProduct() && freight.isLoading()) {
+            <span class="loading loading-spinner loading-sm"></span>
+            }
+            Confirmar producto
+        </button>
+        @if (isRowUpToDate()) {
+        <span class="badge badge-success">Agregado</span>
+        }
+        @if (hasPendingChanges()) {
+        <span class="badge badge-warning">Cambios pendientes</span>
+        }
+    </div>
+</div>

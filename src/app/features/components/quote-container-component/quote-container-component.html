@@ -65,72 +65,15 @@
         @if (canAddProducts()) {
         <div class="space-y-4">
             <h4 class="text-lg font-semibold sm:text-xl">Agregue productos a la cotización</h4>
-            @for (productField of quoteForm.products; track productField; let rowIndex = $index) {
-            <div class="space-y-4 rounded-box border border-base-300 p-4 sm:p-6">
-            <fieldset class="fieldset">
-                <legend class="fieldset-legend">Seleccione un producto</legend>
-
-                <div class="dropdown w-full" [class.dropdown-open]="showProductDropdown(rowIndex)">
-                    <input type="text" class="input input-bordered w-full" placeholder="Buscar y selecionar producto"
-                        [formField]="productField.nameProduct" (focus)="openProductDropdown(rowIndex)"
-                        (input)="openProductDropdown(rowIndex)" />
-
-                    @if (showProductDropdown(rowIndex)) {
-                    <ul class="dropdown-content menu bg-base-100 rounded-box z-10 w-full p-2 shadow">
-                        @for (catalogProduct of filteredProducts()[rowIndex]; track catalogProduct.id) {
-                        <li>
-                            <button type="button" (mousedown)="$event.preventDefault()"
-                                (click)="setProduct(productField, catalogProduct)">
-                                {{ catalogProduct.name }}
-                            </button>
-                        </li>
-                        }
-                    </ul>
-                    }
-                </div>
-            </fieldset>
-            <fieldset class="fieldset">
-                <legend class="fieldset-legend input-md">Precio</legend>
-                <input type="number" class="input input-bordered w-full" placeholder="Precio/Uunidad"
-                    [formField]="productField.price"
-                    [class.input-error]="productField.price().invalid() && productField.price().touched()" />
-                @if (productField.price().invalid() && productField.price().touched()) {
-                @for (error of productField.price().errors(); track error.kind) {
-                <p class="label">{{ error.message }}</p>
-                }
-                }
-            </fieldset>
-            <fieldset class="fieldset">
-                <legend class="fieldset-legend input-md">Cantidad</legend>
-                <input type="number" class="input input-bordered w-full" placeholder="Cantidad"
-                    [formField]="productField.quantity"
-                    [class.input-error]="productField.quantity().invalid() && productField.quantity().touched()" />
-                @if (productField.quantity().invalid() && productField.quantity().touched()) {
-                @for (error of productField.quantity().errors(); track error.kind) {
-                <p class="label">{{ error.message }}</p>
-                }
-                }
-            </fieldset>
-            <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                <button type="button" class="btn btn-primary w-full md:w-auto"
-                    [disabled]="isFreightPendingForRow(rowIndex)"
-                    (click)="confirmProductRow(productField, rowIndex)">
-                    @if (isFreightPendingForRow(rowIndex)) {
-                    <span class="loading loading-spinner loading-sm"></span>
-                    }
-                    Confirmar producto
-                </button>
-                @if (isRowUpToDate(productField, rowIndex)) {
-                <span class="badge badge-success">Agregado</span>
-                }
-                @if (hasPendingChanges(productField, rowIndex)) {
-                <span class="badge badge-warning">Cambios pendientes</span>
-                }
-            </div>
-            </div>
+            @for (rowId of productRowIds(); track rowId; let rowIndex = $index) {
+            <app-quote-product-row
+                [rowIndex]="rowIndex"
+                [cityId]="cityId()"
+                [catalog]="products.value() ?? []"
+                [colors]="colors.value() ?? []"
+                (productConfirmed)="onProductConfirmed($event)" />
             }
-            <button type="button" class="btn btn-outline w-full sm:w-auto"
-                [disabled]="!canAddAnotherProduct()"
+            <button type="button" class="btn btn-outline w-full sm:w-auto" [disabled]="!canAddAnotherProduct()"
                 (click)="addProduct()">Agregar otro producto</button>
             @if (!canAddAnotherProduct()) {
             <p class="text-sm text-base-content/70">
