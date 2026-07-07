@@ -1,13 +1,25 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { debounce, form, FormField, maxLength, minLength, required } from '@angular/forms/signals';
-import { QuoteProductRow, ProductConfirmedEvent } from '../quote-product-row/quote-product-row';
+import {
+  LucideBriefcase,
+  LucideBuilding2,
+  LucideFileText,
+  LucideHash,
+  LucideInfo,
+  LucideMapPin,
+  LucidePackage,
+  LucidePlus,
+  LucideUser,
+} from '@lucide/angular';
 import { Enterprise } from '@shared/models/enterprise-interface';
-import { ProductPlus } from '@shared/models/product-interface';
+import { Product } from '@shared/models/product-interface';
 import { ColorService } from '@shared/service/color-service';
 import { CitiesService } from '@shared/services/cities-service';
 import { CompaniesService } from '@shared/services/companies-service';
 import { ProductsService } from '@shared/services/products-service';
+import { ProductConfirmedEvent, QuoteProductRow } from '../quote-product-row/quote-product-row';
+import { QuoteSummary } from '../quote-summary/quote-summary';
 
 interface QuoteHeaderForm {
   name: string;
@@ -19,9 +31,21 @@ interface QuoteHeaderForm {
 
 @Component({
   selector: 'app-quote-container-component',
-  imports: [FormField, QuoteProductRow],
+  imports: [
+    FormField,
+    QuoteProductRow,
+    QuoteSummary,
+    LucideFileText,
+    LucideBuilding2,
+    LucideUser,
+    LucideBriefcase,
+    LucideHash,
+    LucideMapPin,
+    LucidePackage,
+    LucidePlus,
+    LucideInfo,
+  ],
   templateUrl: './quote-container-component.html',
-  styleUrl: './quote-container-component.scss',
 })
 export class QuoteContainerComponent {
 
@@ -60,7 +84,7 @@ export class QuoteContainerComponent {
 
   todayDate = signal<Date>(new Date());
 
-  private readonly confirmedByRow = signal<Map<number, ProductPlus>>(new Map());
+  private readonly confirmedByRow = signal<Map<number, Product>>(new Map());
 
   readonly productsList = computed(() => [...this.confirmedByRow().values()]);
 
@@ -137,6 +161,15 @@ export class QuoteContainerComponent {
       return;
     }
     this.productRowIds.update((ids) => [...ids, this.nextRowId++]);
+  }
+
+  generateQuote(): void {
+    const products = this.productsList();
+    if (products.length === 0) {
+      return;
+    }
+    // TODO: integrar con el servicio de generación de cotización (backend pendiente).
+    console.log('Generar cotización', { header: this.formModel(), products });
   }
 
 }

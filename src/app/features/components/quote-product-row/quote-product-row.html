@@ -1,16 +1,16 @@
-<div class="space-y-4 rounded-box border border-base-300 p-4 sm:p-6">
+<div class="space-y-4 rounded-box border border-base-300 bg-base-200/40 p-4 sm:p-6">
     <fieldset class="fieldset">
-        <legend class="fieldset-legend">Seleccione un producto</legend>
-
+        <legend class="fieldset-legend">Producto</legend>
         <div class="dropdown w-full" [class.dropdown-open]="showProductDropdown()">
-            <input type="text" class="input input-bordered w-full"
-                placeholder="Buscar y selecionar producto" [formField]="productForm.nameProduct"
-                (focus)="onProductSearchFocus()"
-                (blur)="onProductSearchBlur()"
-                (input)="onProductSearchInput($event)" />
+            <label class="input input-bordered flex w-full items-center gap-2">
+                <svg lucideSearch [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                <input type="text" class="grow" placeholder="Buscar y seleccionar producto"
+                    [formField]="productForm.nameProduct" (focus)="onProductSearchFocus()"
+                    (blur)="onProductSearchBlur()" (input)="onProductSearchInput($event)" />
+            </label>
 
             @if (showProductDropdown()) {
-            <ul class="dropdown-content menu bg-base-100 rounded-box z-10 w-full p-2 shadow">
+            <ul class="dropdown-content menu bg-base-100 rounded-box z-10 max-h-60 w-full flex-nowrap overflow-y-auto p-2 shadow">
                 @for (catalogProduct of filteredProducts(); track catalogProduct.id) {
                 <li>
                     <button type="button" (mousedown)="$event.preventDefault()"
@@ -23,69 +23,218 @@
             }
         </div>
     </fieldset>
-    <fieldset class="fieldset">
-        <legend class="fieldset-legend input-md">Color</legend>
-        <select class="select select-bordered w-full" [formField]="productForm.color"
-            [class.select-error]="productForm.color().invalid() && productForm.color().touched()">
-            <option disabled selected value="">Seleccione un color</option>
-            @for (color of colors(); track color.id) {
-            <option [value]="color.name">{{ color.name }}</option>
+
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend">Color</legend>
+            <label class="select select-bordered flex w-full items-center gap-2"
+                [class.select-error]="productForm.color().invalid() && productForm.color().touched()">
+                <svg lucidePalette [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                <select class="grow" [formField]="productForm.color">
+                    <option disabled selected value="">Seleccione un color</option>
+                    @for (color of colors(); track color.id) {
+                    <option [value]="color.name">{{ color.name }}</option>
+                    }
+                </select>
+            </label>
+            @if (productForm.color().invalid() && productForm.color().touched()) {
+            @for (error of productForm.color().errors(); track error.kind) {
+            <p class="label text-error">{{ error.message }}</p>
             }
-        </select>
-        @if (productForm.color().invalid() && productForm.color().touched()) {
-        @for (error of productForm.color().errors(); track error.kind) {
-        <p class="label">{{ error.message }}</p>
-        }
-        }
-    </fieldset>
-    <fieldset class="fieldset">
-        <legend class="fieldset-legend input-md">Precio</legend>
-        <input type="number" class="input input-bordered w-full" placeholder="Precio/Uunidad"
-            [formField]="productForm.price"
-            [class.input-error]="productForm.price().invalid() && productForm.price().touched()" />
-        @if (productForm.price().invalid() && productForm.price().touched()) {
-        @for (error of productForm.price().errors(); track error.kind) {
-        <p class="label">{{ error.message }}</p>
-        }
-        }
-    </fieldset>
+            }
+        </fieldset>
+
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend">Precio</legend>
+            <label class="input input-bordered flex w-full items-center gap-2"
+                [class.input-error]="productForm.price().invalid() && productForm.price().touched()">
+                <svg lucideBanknote [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                <input type="number" class="grow" placeholder="Precio/unidad" [formField]="productForm.price" />
+                <span class="text-sm opacity-60">COP</span>
+            </label>
+            @if (productForm.price().invalid() && productForm.price().touched()) {
+            @for (error of productForm.price().errors(); track error.kind) {
+            <p class="label text-error">{{ error.message }}</p>
+            }
+            }
+        </fieldset>
+    </div>
+
     @if (hasRestorePrice()) {
-    <label class="label">
-        <input type="checkbox" [formField]="productForm.isRestore" class="checkbox"
+    <label class="label cursor-pointer justify-start gap-3">
+        <input type="checkbox" [formField]="productForm.isRestore" class="checkbox checkbox-primary"
             (change)="onRestoreToggle()" />
-        ¿Es material Recuperado?
+        ¿Es material recuperado?
     </label>
     }
-    <fieldset class="fieldset">
-        <legend class="fieldset-legend input-md">Cantidad</legend>
-        <input type="number" class="input input-bordered w-full" placeholder="Cantidad"
-            [formField]="productForm.quantity"
-            [class.input-error]="productForm.quantity().invalid() && productForm.quantity().touched()" />
-        @if (productForm.quantity().invalid() && productForm.quantity().touched()) {
-        @for (error of productForm.quantity().errors(); track error.kind) {
-        <p class="label">{{ error.message }}</p>
+
+    <div class="divider mt-2 mb-0 text-base-content/70">
+        <span class="flex items-center gap-2">
+            <svg lucideBox [size]="18" class="text-primary" aria-hidden="true"></svg>
+            Componentes adicionales
+        </span>
+    </div>
+
+    <div class="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-2">
+        <label class="label cursor-pointer justify-start gap-3">
+            <input type="checkbox" [formField]="productForm.tap" class="toggle toggle-primary" />
+            ¿Incluye tapa?
+        </label>
+        <label class="label cursor-pointer justify-start gap-3">
+            <input type="checkbox" [formField]="productForm.liner" class="toggle toggle-primary" />
+            ¿Incluye liner?
+        </label>
+        <label class="label cursor-pointer justify-start gap-3">
+            <input type="checkbox" [formField]="productForm.strap" class="toggle toggle-primary" />
+            ¿Incluye manija?
+        </label>
+        <label class="label cursor-pointer justify-start gap-3">
+            <input type="checkbox" [formField]="productForm.decoration" class="toggle toggle-primary" />
+            ¿Incluye decoración?
+        </label>
+    </div>
+
+    @if (productForm.tap().value() || productForm.liner().value() || productForm.strap().value() ||
+    productForm.decoration().value()) {
+    <section class="grid grid-cols-1 gap-4 rounded-box bg-base-100 p-4 md:grid-cols-2">
+        @if (productForm.tap().value()) {
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend">Tapa</legend>
+            <select class="select select-bordered w-full"
+                (change)="onChangeSelect($any($event.target).value, 'TAPA')">
+                <option disabled selected value="">Seleccione una opción</option>
+                @for (addon of addonsGrouped().get('TAPA'); track addon.id) {
+                <option [value]="addon.id">{{ addon.addonName }}</option>
+                } @empty {
+                <option disabled>No hay tapas asociadas a este producto</option>
+                }
+            </select>
+        </fieldset>
+        @if (addonsGrouped().get('TAPA')?.length) {
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend">Precio de la tapa</legend>
+            <label class="input input-bordered flex w-full items-center gap-2">
+                <input type="number" class="grow" placeholder="Precio/unidad"
+                    [formField]="productForm.addonProducts[0].price" />
+                <span class="text-sm opacity-60">COP</span>
+            </label>
+        </fieldset>
+        } @else {
+        <div class="alert alert-warning py-2">
+            <svg lucideTriangleAlert [size]="18" aria-hidden="true"></svg>
+            <span class="text-sm">No se encontraron tapas asociadas a este producto.</span>
+        </div>
         }
         }
-    </fieldset>
+
+        @if (productForm.liner().value()) {
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend">Liner</legend>
+            <select class="select select-bordered w-full"
+                (change)="onChangeSelect($any($event.target).value, 'LINER')">
+                <option disabled selected value="">Seleccione una opción</option>
+                @for (addon of addonsGrouped().get('LINER'); track addon.id) {
+                <option [value]="addon.id">{{ addon.addonName }}</option>
+                } @empty {
+                <option disabled>No hay liners asociados a este producto</option>
+                }
+            </select>
+        </fieldset>
+        @if (addonsGrouped().get('LINER')?.length) {
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend">Precio del liner</legend>
+            <label class="input input-bordered flex w-full items-center gap-2">
+                <input type="number" class="grow" placeholder="Precio/unidad"
+                    [formField]="productForm.addonProducts[1].price" />
+                <span class="text-sm opacity-60">COP</span>
+            </label>
+        </fieldset>
+        } @else {
+        <div class="alert alert-warning py-2">
+            <svg lucideTriangleAlert [size]="18" aria-hidden="true"></svg>
+            <span class="text-sm">No se encontraron liners asociados a este producto.</span>
+        </div>
+        }
+        }
+
+        @if (productForm.strap().value()) {
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend">Manija</legend>
+            <select class="select select-bordered w-full"
+                (change)="onChangeSelect($any($event.target).value, 'MANIJA')">
+                <option disabled selected value="">Seleccione una opción</option>
+                @for (addon of addonsGrouped().get('MANIJA'); track addon.id) {
+                <option [value]="addon.id">{{ addon.addonName }}</option>
+                } @empty {
+                <option disabled>No hay manijas asociadas a este producto</option>
+                }
+            </select>
+        </fieldset>
+        @if (addonsGrouped().get('MANIJA')?.length) {
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend">Precio de la manija</legend>
+            <label class="input input-bordered flex w-full items-center gap-2">
+                <input type="number" class="grow" placeholder="Precio/unidad"
+                    [formField]="productForm.addonProducts[2].price" />
+                <span class="text-sm opacity-60">COP</span>
+            </label>
+        </fieldset>
+        } @else {
+        <div class="alert alert-warning py-2">
+            <svg lucideTriangleAlert [size]="18" aria-hidden="true"></svg>
+            <span class="text-sm">No se encontraron manijas asociadas a este producto.</span>
+        </div>
+        }
+        }
+
+        @if (productForm.decoration().value()) {
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend">Nombre de la decoración</legend>
+            <input type="text" class="input input-bordered w-full" placeholder="Nombre de la decoración"
+                [formField]="productForm.addonProducts[3].nameProduct" />
+        </fieldset>
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend">Precio de la decoración</legend>
+            <label class="input input-bordered flex w-full items-center gap-2">
+                <input type="number" class="grow" placeholder="Precio/unidad"
+                    [formField]="productForm.addonProducts[3].price" />
+                <span class="text-sm opacity-60">COP</span>
+            </label>
+        </fieldset>
+        }
+    </section>
+    }
+
     @if (selectedProduct() && freight.error()) {
     <div class="alert alert-error">
+        <svg lucideTriangleAlert [size]="20" aria-hidden="true"></svg>
         <span>No se pudo calcular el flete. Intente de nuevo.</span>
     </div>
     }
-    <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <button type="button" class="btn btn-primary w-full md:w-auto"
-            [disabled]="!canConfirmProduct()"
-            (click)="confirmProduct()">
-            @if (selectedProduct() && freight.isLoading()) {
-            <span class="loading loading-spinner loading-sm"></span>
+
+    <div class="flex flex-col gap-3 border-t border-base-300 pt-4 md:flex-row md:items-center md:justify-between">
+        <p class="text-base-content/70">
+            Total del producto:
+            <span class="text-lg font-bold text-primary">
+                {{ totalPrice() | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+            </span>
+        </p>
+        <div class="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+            <button type="button" class="btn btn-primary gap-2" [disabled]="!canConfirmProduct()"
+                (click)="confirmProduct()">
+                @if (selectedProduct() && freight.isLoading()) {
+                <span class="loading loading-spinner loading-sm"></span>
+                } @else {
+                <svg lucideCircleCheck [size]="18" aria-hidden="true"></svg>
+                }
+                Confirmar producto
+            </button>
+            @if (isRowUpToDate()) {
+            <span class="badge badge-success">Agregado</span>
             }
-            Confirmar producto
-        </button>
-        @if (isRowUpToDate()) {
-        <span class="badge badge-success">Agregado</span>
-        }
-        @if (hasPendingChanges()) {
-        <span class="badge badge-warning">Cambios pendientes</span>
-        }
+            @if (hasPendingChanges()) {
+            <span class="badge badge-warning">Cambios pendientes</span>
+            }
+        </div>
     </div>
 </div>

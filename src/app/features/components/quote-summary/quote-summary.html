@@ -1,0 +1,33 @@
+<div class="card bg-base-100 shadow-sm lg:sticky lg:top-6">
+    <div class="card-body gap-4">
+        <h2 class="card-title text-lg sm:text-xl">
+            <svg lucideClipboardList [size]="20" class="text-primary" aria-hidden="true"></svg>
+            Resumen de la cotización
+        </h2>
+
+        @if (products().length) {
+        <ul class="flex flex-col">
+            @for (product of products(); track $index; let last = $last) {
+            <li class="flex items-center justify-between gap-3 py-3"
+                [class.border-b]="!last" [class.border-base-300]="!last">
+                <span class="min-w-0 flex-1 truncate font-medium">{{ product.name }}</span>
+                <span class="shrink-0 font-bold text-primary">
+                    {{ product.originalPrice | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+                </span>
+            </li>
+            }
+        </ul>
+
+        <button type="button" class="btn btn-primary w-full gap-2"
+            [disabled]="!products().length" (click)="generate.emit()">
+            <svg lucideDownload [size]="18" aria-hidden="true"></svg>
+            Generar cotización
+        </button>
+        } @else {
+        <div class="flex flex-col items-center gap-3 py-8 text-center text-base-content/60">
+            <svg lucidePackage [size]="40" class="opacity-40" aria-hidden="true"></svg>
+            <p class="text-sm">Aún no hay productos confirmados.</p>
+        </div>
+        }
+    </div>
+</div>

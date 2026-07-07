@@ -5,8 +5,8 @@ export type ProductType =
     'BOTELLA' |
     'TAPA' |
     'LINER' |
-    'DECORATION' |
-    'MANIJA'
+    'MANIJA' |
+    'DECORATION'
 
 export interface Product {
     id: number;
@@ -24,20 +24,21 @@ export interface Product {
     originalPriceRestore?: number;
 }
 
-export interface ProductPlus extends Product {
-    quantity: number;
-    freight: number;
-}
-export interface AddonProduct extends Omit<ProductFormArray, 'quantity' | 'isRestore' | 'addonProducts' | 'color'> {
+export interface AddonProduct extends Omit<ProductFormArray,
+    'isRestore' | 'addonProducts' | 'color' | 'tap' | 'decoration' | 'liner' | 'strap'> {
+    type: ProductType
 }
 
 export interface ProductFormArray {
     productId: number;
     nameProduct: string;
-    quantity: number;
     price: number;
     isRestore: boolean;
     color: string;
+    tap: boolean;
+    decoration: boolean;
+    liner: boolean;
+    strap: boolean;
     addonProducts: AddonProduct[];
 }
 
