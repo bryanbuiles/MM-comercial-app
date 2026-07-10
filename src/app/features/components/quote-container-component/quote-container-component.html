@@ -108,6 +108,54 @@
                             }
                             }
                         </fieldset>
+
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">Fecha de la cotización</legend>
+                            <div class="dropdown w-full">
+                                <div tabindex="0" role="button"
+                                    class="input input-bordered flex w-full items-center gap-2"
+                                    [class.input-error]="quoteForm.date().invalid() && quoteForm.date().touched()">
+                                    <svg lucideCalendar [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                                    <span class="grow text-left"
+                                        [class.text-base-content/50]="!quoteForm.date().value()">
+                                        {{ quoteForm.date().value() || 'Seleccione una fecha' }}
+                                    </span>
+                                </div>
+                                <div tabindex="-1"
+                                    class="dropdown-content z-10 rounded-box bg-base-100 p-0 shadow-lg">
+                                    <calendar-date class="cally bg-base-100 border border-base-300 shadow-lg rounded-box"
+                                        [attr.min]="minDate" locale="es-CO" (change)="onDateChange($event)">
+                                        <svg aria-label="Mes anterior" class="fill-current size-4" slot="previous"
+                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                            <path fill="currentColor"
+                                                d="M15.75 19.5 8.25 12l7.5-7.5"></path>
+                                        </svg>
+                                        <svg aria-label="Mes siguiente" class="fill-current size-4" slot="next"
+                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                            <path fill="currentColor"
+                                                d="m8.25 4.5 7.5 7.5-7.5 7.5"></path>
+                                        </svg>
+                                        <calendar-month></calendar-month>
+                                    </calendar-date>
+                                </div>
+                            </div>
+                            @if (quoteForm.date().invalid() && quoteForm.date().touched()) {
+                            @for (error of quoteForm.date().errors(); track error.kind) {
+                            <p class="label text-error">{{ error.message }}</p>
+                            }
+                            }
+                        </fieldset>
+
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend opacity-0 select-none" aria-hidden="true">
+                                Compra a Credito
+                            </legend>
+                            <label class="label cursor-pointer justify-start gap-3 h-12 items-center">
+                                <input type="checkbox" class="checkbox checkbox-primary"
+                                    [formField]="quoteForm.credit" />
+                                Compra a Credito
+                            </label>
+                        </fieldset>
                     </div>
                 </div>
             </div>
