@@ -11,4 +11,16 @@ import { ProductPLus } from '@shared/models/product-interface';
 export class QuoteSummary {
   readonly products = input<ProductPLus[]>([]);
   readonly generate = output<void>();
+
+  showsOriginal(product: ProductPLus): boolean {
+    return product.restoreType === 'ORIGINAL' || product.restoreType === 'BOTH';
+  }
+
+  showsRestore(product: ProductPLus): boolean {
+    return product.restoreType === 'RESTORE' || product.restoreType === 'BOTH';
+  }
+
+  showsBoth(product: ProductPLus): boolean {
+    return product.restoreType === 'BOTH';
+  }
 }

@@ -6,28 +6,64 @@
         </h2>
 
         @if (products().length) {
-        <ul class="flex flex-col">
-            @for (product of products(); track $index; let last = $last) {
-                @if (product.restoreType === "ORIGINAL" || product.restoreType === "BOTH") {
-                    <span>Precio material nuevo</span>
-                    <li class="flex items-center justify-between gap-3 py-3"
-                    [class.border-b]="!last" [class.border-base-300]="!last">
-                    <span class="min-w-0 flex-1 truncate font-medium">{{ product.name }}</span>
-                    <span class="shrink-0 font-bold text-primary">
+        <ul class="grid grid-cols-1 gap-3">
+            @for (product of products(); track $index) {
+            <li class="rounded-box border border-base-300 bg-base-200/40 p-4">
+                @if (showsBoth(product)) {
+                <div class="space-y-3">
+                    <div class="space-y-1">
+                        <h3 class="font-semibold text-sm sm:text-base">{{ product.name }}</h3>
+                        @if (product.color) {
+                        <p class="text-xs text-base-content/70">{{ product.color }}</p>
+                        }
+                    </div>
+                    <div class="stats w-full bg-base-100 shadow-sm">
+                        <div class="stat p-3">
+                            <div class="stat-title">Material nuevo</div>
+                            <div class="stat-value text-base text-primary sm:text-lg">
+                                {{ product.originalPrice | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+                            </div>
+                        </div>
+                        <div class="stat p-3">
+                            <div class="stat-title">Material recuperado</div>
+                            <div class="stat-value text-base text-primary sm:text-lg">
+                                {{ product.originalPriceRestore | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                } @else if (showsOriginal(product)) {
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0 space-y-1">
+                        <h3 class="font-semibold text-sm sm:text-base">{{ product.name }}</h3>
+                        <div class="flex flex-wrap items-center gap-2">
+                            @if (product.color) {
+                            <span class="text-xs text-base-content/70">{{ product.color }}</span>
+                            }
+                            <span class="badge badge-ghost badge-sm">Material nuevo</span>
+                        </div>
+                    </div>
+                    <span class="shrink-0 text-base font-bold text-primary sm:text-lg">
                         {{ product.originalPrice | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
                     </span>
-                </li>
+                </div>
+                } @else if (showsRestore(product)) {
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0 space-y-1">
+                        <h3 class="font-semibold text-sm sm:text-base">{{ product.name }}</h3>
+                        <div class="flex flex-wrap items-center gap-2">
+                            @if (product.color) {
+                            <span class="text-xs text-base-content/70">{{ product.color }}</span>
+                            }
+                            <span class="badge badge-ghost badge-sm">Material recuperado</span>
+                        </div>
+                    </div>
+                    <span class="shrink-0 text-base font-bold text-primary sm:text-lg">
+                        {{ product.originalPriceRestore | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+                    </span>
+                </div>
                 }
-                @if (product.restoreType === "RESTORE"|| product.restoreType === "BOTH") {
-                <span>Precio material recuperado</span>
-                <li class="flex items-center justify-between gap-3 py-3"
-                [class.border-b]="!last" [class.border-base-300]="!last">
-                <span class="min-w-0 flex-1 truncate font-medium">{{ product.name }}</span>
-                <span class="shrink-0 font-bold text-primary">
-                    {{ product.originalPriceRestore | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
-                </span>
             </li>
-            }
             }
         </ul>
 

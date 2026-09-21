@@ -46,12 +46,12 @@
 
         @if (hasRestorePrice()) {
             <fieldset class="fieldset">
-                <legend class="fieldset-legend">Tipo de material</legend>
+                <legend class="fieldset-legend">Material nuevo/recuperado o ambos</legend>
                 <label class="select select-bordered flex w-full items-center gap-2"
                     [class.select-error]="productForm.restoreType().invalid() && productForm.restoreType().touched()">
-                    <svg lucidePalette [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                    <svg lucideAnvil [size]="18" class="opacity-60" aria-hidden="true"></svg>
                     <select class="grow" [formField]="productForm.restoreType">
-                        <option disabled selected value="">Seleccione un color</option>
+                        <option disabled selected value="">Seleccione la opcion para mostrar original/recuperado</option>
                         @for (type of restoreTYpes; track type.name) {
                         <option [value]="type.value">{{ type.name }}</option>
                         }

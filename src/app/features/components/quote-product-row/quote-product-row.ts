@@ -2,14 +2,7 @@ import { CurrencyPipe } from '@angular/common';
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { form, FormField, min, required } from '@angular/forms/signals';
-import {
-  LucideBanknote,
-  LucideBox,
-  LucideCircleCheck,
-  LucidePalette,
-  LucideSearch,
-  LucideTriangleAlert,
-} from '@lucide/angular';
+import { LucideAnvil, LucideBanknote, LucideBox, LucideCircleCheck, LucidePalette, LucideSearch, LucideTriangleAlert } from '@lucide/angular';
 import { Addon } from '@shared/models/addon-interface';
 import { Color } from '@shared/models/color-interface';
 import { Product, ProductFormArray, ProductPLus, ProductType } from '@shared/models/product-interface';
@@ -32,7 +25,8 @@ export interface ProductConfirmedEvent {
     LucideBox,
     LucideCircleCheck,
     LucideTriangleAlert,
-  ],
+    LucideAnvil
+],
   templateUrl: './quote-product-row.html',
 })
 export class QuoteProductRow {
@@ -54,7 +48,7 @@ export class QuoteProductRow {
     value: 'RESTORE'
   },
   {
-    name: 'AMBOS',
+    name: 'Ambos',
     value: 'BOTH'
   },
 ]
