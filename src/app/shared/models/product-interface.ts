@@ -29,6 +29,10 @@ export interface AddonProduct extends Omit<ProductFormArray,
     type: ProductType
 }
 
+export interface ProductPLus extends Product {
+    addonProducts: AddonProduct[];
+}
+
 export interface ProductFormArray {
     productId: number;
     nameProduct: string;

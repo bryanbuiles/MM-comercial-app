@@ -1,37 +1,31 @@
 import { Component, computed, CUSTOM_ELEMENTS_SCHEMA, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { debounce, form, FormField, maxLength, minLength, required } from '@angular/forms/signals';
+import { debounce, form, FormField, maxLength, min, minLength, required } from '@angular/forms/signals';
 import {
+  LucideBoxes,
   LucideBriefcase,
   LucideBuilding2,
   LucideCalendar,
+  LucideCalendarClock,
   LucideFileText,
   LucideHash,
   LucideInfo,
   LucideMapPin,
   LucidePackage,
   LucidePlus,
+  LucideTruck,
   LucideUser,
 } from '@lucide/angular';
 import { Enterprise } from '@shared/models/enterprise-interface';
-import { Product } from '@shared/models/product-interface';
-import { ColorService } from '@shared/service/color-service';
+import { ProductPLus } from '@shared/models/product-interface';
+import { QuoteHeaderForm } from '@shared/models/quotation';
 import { CitiesService } from '@shared/services/cities-service';
+import { ColorService } from '@shared/services/color-service';
 import { CompaniesService } from '@shared/services/companies-service';
 import { ProductsService } from '@shared/services/products-service';
 import 'cally';
 import { ProductConfirmedEvent, QuoteProductRow } from '../quote-product-row/quote-product-row';
 import { QuoteSummary } from '../quote-summary/quote-summary';
-
-interface QuoteHeaderForm {
-  name: string;
-  companyName: string;
-  consecutive: string;
-  date: string;
-  city: string;
-  position: string;
-  credit: boolean;
-}
 
 const MONTHS_ES = [
   'Enero',
@@ -61,6 +55,9 @@ const MONTHS_ES = [
     LucideHash,
     LucideMapPin,
     LucideCalendar,
+    LucideCalendarClock,
+    LucideTruck,
+    LucideBoxes,
     LucidePackage,
     LucidePlus,
     LucideInfo,
@@ -104,7 +101,7 @@ export class QuoteContainerComponent {
     () => this.companyDropdownOpen() && this.filteredCompanies().length > 0,
   );
 
-  private readonly confirmedByRow = signal<Map<number, Product>>(new Map());
+  private readonly confirmedByRow = signal<Map<number, ProductPLus>>(new Map());
 
   readonly productsList = computed(() => [...this.confirmedByRow().values()]);
 
@@ -126,7 +123,7 @@ export class QuoteContainerComponent {
     return lastIndex >= 0 && this.confirmedByRow().has(lastIndex);
   });
 
-  formModel = signal<QuoteHeaderForm>({
+  formModel = signal<Omit<QuoteHeaderForm, "salesPerson">>({
     name: '',
     companyName: '',
     city: '',
@@ -134,6 +131,9 @@ export class QuoteContainerComponent {
     consecutive: '',
     date: '',
     credit: false,
+    daysCredit: 30,
+    daysTransport: 15,
+    minQuantity: 100
   });
 
   quoteForm = form(this.formModel, (schemaPath) => {
@@ -152,6 +152,9 @@ export class QuoteContainerComponent {
     required(schemaPath.city, { message: 'Ciudad requeridad' });
     required(schemaPath.date, { message: 'Fecha de la cotizacion' });
     debounce(schemaPath.companyName, 300);
+    min(schemaPath.daysCredit, 30, {message: 'Minimo 30 dias para el credito'});
+    min(schemaPath.daysTransport, 15, {message: 'Minimo 15 dias para le entrega'});
+    min(schemaPath.minQuantity, 100, {message: 'Cantidad minima de producto 100 unidades'});
   });
 
   openCompanyDropdown(): void {

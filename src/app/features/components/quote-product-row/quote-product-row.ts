@@ -12,13 +12,13 @@ import {
 } from '@lucide/angular';
 import { Addon } from '@shared/models/addon-interface';
 import { Color } from '@shared/models/color-interface';
-import { Product, ProductFormArray, ProductType } from '@shared/models/product-interface';
+import { Product, ProductFormArray, ProductPLus, ProductType } from '@shared/models/product-interface';
 import { AddonService } from '@shared/services/addon-service';
 import { FreightService } from '@shared/services/freight-service';
 
 export interface ProductConfirmedEvent {
   rowIndex: number;
-  product: Product;
+  product: ProductPLus;
 }
 
 @Component({
@@ -238,10 +238,11 @@ export class QuoteProductRow {
       return;
     }
 
-    const productPlus: Product = {
+    const productPlus: ProductPLus = {
       ...catalogProduct,
       color: this.productForm.color().value(),
-      originalPrice: this.totalPrice()
+      originalPrice: this.totalPrice(),
+      addonProducts: this.productForm.addonProducts().value()
     };
 
     this.rowConfirmed.set(true);

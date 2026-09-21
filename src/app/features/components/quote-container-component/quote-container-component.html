@@ -156,6 +156,54 @@
                                 Compra a Credito
                             </label>
                         </fieldset>
+                        <div class="grid grid-cols-1 gap-4 md:col-span-2"
+                            [class.md:grid-cols-3]="quoteForm.credit().value()"
+                            [class.md:grid-cols-2]="!quoteForm.credit().value()">
+                            @if (quoteForm.credit().value()) {
+                            <fieldset class="fieldset">
+                                <legend class="fieldset-legend">Días de crédito</legend>
+                                <label class="input input-bordered flex w-full items-center gap-2"
+                                    [class.input-error]="quoteForm.daysCredit().invalid() && quoteForm.daysCredit().touched()">
+                                    <svg lucideCalendarClock [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                                    <input type="number" class="grow" placeholder="30"
+                                        [formField]="quoteForm.daysCredit" />
+                                </label>
+                                @if (quoteForm.daysCredit().invalid() && quoteForm.daysCredit().touched()) {
+                                @for (error of quoteForm.daysCredit().errors(); track error.kind) {
+                                <p class="label text-error">{{ error.message }}</p>
+                                }
+                                }
+                            </fieldset>
+                            }
+                            <fieldset class="fieldset">
+                                <legend class="fieldset-legend">Días de entrega</legend>
+                                <label class="input input-bordered flex w-full items-center gap-2"
+                                    [class.input-error]="quoteForm.daysTransport().invalid() && quoteForm.daysTransport().touched()">
+                                    <svg lucideTruck [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                                    <input type="number" class="grow" placeholder="15"
+                                        [formField]="quoteForm.daysTransport" />
+                                </label>
+                                @if (quoteForm.daysTransport().invalid() && quoteForm.daysTransport().touched()) {
+                                @for (error of quoteForm.daysTransport().errors(); track error.kind) {
+                                <p class="label text-error">{{ error.message }}</p>
+                                }
+                                }
+                            </fieldset>
+                            <fieldset class="fieldset">
+                                <legend class="fieldset-legend">Unidades a fabricar</legend>
+                                <label class="input input-bordered flex w-full items-center gap-2"
+                                    [class.input-error]="quoteForm.minQuantity().invalid() && quoteForm.minQuantity().touched()">
+                                    <svg lucideBoxes [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                                    <input type="number" class="grow" placeholder="100"
+                                        [formField]="quoteForm.minQuantity" />
+                                </label>
+                                @if (quoteForm.minQuantity().invalid() && quoteForm.minQuantity().touched()) {
+                                @for (error of quoteForm.minQuantity().errors(); track error.kind) {
+                                <p class="label text-error">{{ error.message }}</p>
+                                }
+                                }
+                            </fieldset>
+                        </div>
                     </div>
                 </div>
             </div>
