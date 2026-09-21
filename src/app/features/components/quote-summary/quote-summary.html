@@ -8,13 +8,26 @@
         @if (products().length) {
         <ul class="flex flex-col">
             @for (product of products(); track $index; let last = $last) {
-            <li class="flex items-center justify-between gap-3 py-3"
+                @if (product.restoreType === "ORIGINAL" || product.restoreType === "BOTH") {
+                    <span>Precio material nuevo</span>
+                    <li class="flex items-center justify-between gap-3 py-3"
+                    [class.border-b]="!last" [class.border-base-300]="!last">
+                    <span class="min-w-0 flex-1 truncate font-medium">{{ product.name }}</span>
+                    <span class="shrink-0 font-bold text-primary">
+                        {{ product.originalPrice | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+                    </span>
+                </li>
+                }
+                @if (product.restoreType === "RESTORE"|| product.restoreType === "BOTH") {
+                <span>Precio material recuperado</span>
+                <li class="flex items-center justify-between gap-3 py-3"
                 [class.border-b]="!last" [class.border-base-300]="!last">
                 <span class="min-w-0 flex-1 truncate font-medium">{{ product.name }}</span>
                 <span class="shrink-0 font-bold text-primary">
-                    {{ product.originalPrice | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+                    {{ product.originalPriceRestore | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
                 </span>
             </li>
+            }
             }
         </ul>
 

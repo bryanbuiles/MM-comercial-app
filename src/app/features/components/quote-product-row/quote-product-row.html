@@ -44,29 +44,60 @@
             }
         </fieldset>
 
-        <fieldset class="fieldset">
-            <legend class="fieldset-legend">Precio</legend>
-            <label class="input input-bordered flex w-full items-center gap-2"
-                [class.input-error]="productForm.price().invalid() && productForm.price().touched()">
-                <svg lucideBanknote [size]="18" class="opacity-60" aria-hidden="true"></svg>
-                <input type="number" class="grow" placeholder="Precio/unidad" [formField]="productForm.price" />
-                <span class="text-sm opacity-60">COP</span>
-            </label>
-            @if (productForm.price().invalid() && productForm.price().touched()) {
-            @for (error of productForm.price().errors(); track error.kind) {
-            <p class="label text-error">{{ error.message }}</p>
-            }
-            }
-        </fieldset>
+        @if (hasRestorePrice()) {
+            <fieldset class="fieldset">
+                <legend class="fieldset-legend">Tipo de material</legend>
+                <label class="select select-bordered flex w-full items-center gap-2"
+                    [class.select-error]="productForm.restoreType().invalid() && productForm.restoreType().touched()">
+                    <svg lucidePalette [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                    <select class="grow" [formField]="productForm.restoreType">
+                        <option disabled selected value="">Seleccione un color</option>
+                        @for (type of restoreTYpes; track type.name) {
+                        <option [value]="type.value">{{ type.name }}</option>
+                        }
+                    </select>
+                </label>
+                @if (productForm.restoreType().invalid() && productForm.restoreType().touched()) {
+                @for (error of productForm.restoreType().errors(); track error.kind) {
+                <p class="label text-error">{{ error.message }}</p>
+                }
+                }
+            </fieldset>
+        }
+        @if (productForm.restoreType().value() === 'ORIGINAL' || productForm.restoreType().value() === 'BOTH') {
+            <fieldset class="fieldset">
+                <legend class="fieldset-legend">Precio meterial nuevo</legend>
+                <label class="input input-bordered flex w-full items-center gap-2"
+                    [class.input-error]="productForm.originalPrice().invalid() && productForm.originalPrice().touched()">
+                    <svg lucideBanknote [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                    <input type="number" class="grow" placeholder="Precio/unidad" [formField]="productForm.originalPrice" />
+                    <span class="text-sm opacity-60">COP</span>
+                </label>
+                @if (productForm.originalPrice().invalid() && productForm.originalPrice().touched()) {
+                @for (error of productForm.originalPrice().errors(); track error.kind) {
+                <p class="label text-error">{{ error.message }}</p>
+                }
+                }
+            </fieldset>
+        }
+        @if (productForm.restoreType().value() === 'RESTORE' || productForm.restoreType().value() === 'BOTH') {
+            <fieldset class="fieldset">
+                <legend class="fieldset-legend">Precio de material recuperado</legend>
+                <label class="input input-bordered flex w-full items-center gap-2"
+                    [class.input-error]="productForm.originalPriceRestore().invalid() && productForm.originalPriceRestore().touched()">
+                    <svg lucideBanknote [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                    <input type="number" class="grow" placeholder="Precio/unidad" [formField]="productForm.originalPriceRestore" />
+                    <span class="text-sm opacity-60">COP</span>
+                </label>
+                @if (productForm.originalPriceRestore().invalid() && productForm.originalPriceRestore().touched()) {
+                @for (error of productForm.originalPriceRestore().errors(); track error.kind) {
+                <p class="label text-error">{{ error.message }}</p>
+                }
+                }
+            </fieldset>
+        }
     </div>
 
-    @if (hasRestorePrice()) {
-    <label class="label cursor-pointer justify-start gap-3">
-        <input type="checkbox" [formField]="productForm.isRestore" class="checkbox checkbox-primary"
-            (change)="onRestoreToggle()" />
-        ¿Es material recuperado?
-    </label>
-    }
 
     <div class="divider mt-2 mb-0 text-base-content/70">
         <span class="flex items-center gap-2">
@@ -111,14 +142,26 @@
             </select>
         </fieldset>
         @if (addonsGrouped().get('TAPA')?.length) {
-        <fieldset class="fieldset">
-            <legend class="fieldset-legend">Precio de la tapa</legend>
-            <label class="input input-bordered flex w-full items-center gap-2">
-                <input type="number" class="grow" placeholder="Precio/unidad"
-                    [formField]="productForm.addonProducts[0].price" />
-                <span class="text-sm opacity-60">COP</span>
-            </label>
-        </fieldset>
+            @if(productForm.restoreType().value() === 'ORIGINAL' || productForm.restoreType().value() === 'BOTH') {
+                <fieldset class="fieldset">
+                    <legend class="fieldset-legend">Precio de la tapa</legend>
+                    <label class="input input-bordered flex w-full items-center gap-2">
+                        <input type="number" class="grow" placeholder="Precio/unidad"
+                            [formField]="productForm.addonProducts[0].originalPrice" />
+                        <span class="text-sm opacity-60">COP</span>
+                    </label>
+                </fieldset>
+            }
+            @if(productForm.restoreType().value() === 'RESTORE' || productForm.restoreType().value() === 'BOTH') {
+                <fieldset class="fieldset">
+                    <legend class="fieldset-legend">Precio de la tapa recuperada</legend>
+                    <label class="input input-bordered flex w-full items-center gap-2">
+                        <input type="number" class="grow" placeholder="Precio/unidad"
+                            [formField]="productForm.addonProducts[0].originalPriceRestore" />
+                        <span class="text-sm opacity-60">COP</span>
+                    </label>
+                </fieldset>
+            }
         } @else {
         <div class="alert alert-warning py-2">
             <svg lucideTriangleAlert [size]="18" aria-hidden="true"></svg>
@@ -141,14 +184,26 @@
             </select>
         </fieldset>
         @if (addonsGrouped().get('LINER')?.length) {
-        <fieldset class="fieldset">
-            <legend class="fieldset-legend">Precio del liner</legend>
-            <label class="input input-bordered flex w-full items-center gap-2">
-                <input type="number" class="grow" placeholder="Precio/unidad"
-                    [formField]="productForm.addonProducts[1].price" />
-                <span class="text-sm opacity-60">COP</span>
-            </label>
-        </fieldset>
+            @if(productForm.restoreType().value() === 'ORIGINAL' || productForm.restoreType().value() === 'BOTH') {
+                <fieldset class="fieldset">
+                    <legend class="fieldset-legend">Precio del liner</legend>
+                    <label class="input input-bordered flex w-full items-center gap-2">
+                        <input type="number" class="grow" placeholder="Precio/unidad"
+                            [formField]="productForm.addonProducts[1].originalPrice" />
+                        <span class="text-sm opacity-60">COP</span>
+                    </label>
+                </fieldset>
+            }
+            @if(productForm.restoreType().value() === 'RESTORE' || productForm.restoreType().value() === 'BOTH') {
+                <fieldset class="fieldset">
+                    <legend class="fieldset-legend">Precio del liner recuperado</legend>
+                    <label class="input input-bordered flex w-full items-center gap-2">
+                        <input type="number" class="grow" placeholder="Precio/unidad"
+                            [formField]="productForm.addonProducts[1].originalPriceRestore" />
+                        <span class="text-sm opacity-60">COP</span>
+                    </label>
+                </fieldset>
+            }
         } @else {
         <div class="alert alert-warning py-2">
             <svg lucideTriangleAlert [size]="18" aria-hidden="true"></svg>
@@ -171,14 +226,26 @@
             </select>
         </fieldset>
         @if (addonsGrouped().get('MANIJA')?.length) {
-        <fieldset class="fieldset">
-            <legend class="fieldset-legend">Precio de la manija</legend>
-            <label class="input input-bordered flex w-full items-center gap-2">
-                <input type="number" class="grow" placeholder="Precio/unidad"
-                    [formField]="productForm.addonProducts[2].price" />
-                <span class="text-sm opacity-60">COP</span>
-            </label>
-        </fieldset>
+            @if(productForm.restoreType().value() === 'ORIGINAL' || productForm.restoreType().value() === 'BOTH') {
+                <fieldset class="fieldset">
+                    <legend class="fieldset-legend">Precio de la manija</legend>
+                    <label class="input input-bordered flex w-full items-center gap-2">
+                        <input type="number" class="grow" placeholder="Precio/unidad"
+                            [formField]="productForm.addonProducts[2].originalPrice" />
+                        <span class="text-sm opacity-60">COP</span>
+                    </label>
+                </fieldset>
+            }
+            @if(productForm.restoreType().value() === 'RESTORE' || productForm.restoreType().value() === 'BOTH') {
+                <fieldset class="fieldset">
+                    <legend class="fieldset-legend">Precio de la manija recuperada</legend>
+                    <label class="input input-bordered flex w-full items-center gap-2">
+                        <input type="number" class="grow" placeholder="Precio/unidad"
+                            [formField]="productForm.addonProducts[2].originalPriceRestore" />
+                        <span class="text-sm opacity-60">COP</span>
+                    </label>
+                </fieldset>
+            }
         } @else {
         <div class="alert alert-warning py-2">
             <svg lucideTriangleAlert [size]="18" aria-hidden="true"></svg>
@@ -197,7 +264,7 @@
             <legend class="fieldset-legend">Precio de la decoración</legend>
             <label class="input input-bordered flex w-full items-center gap-2">
                 <input type="number" class="grow" placeholder="Precio/unidad"
-                    [formField]="productForm.addonProducts[3].price" />
+                    [formField]="productForm.addonProducts[3].originalPrice" />
                 <span class="text-sm opacity-60">COP</span>
             </label>
         </fieldset>

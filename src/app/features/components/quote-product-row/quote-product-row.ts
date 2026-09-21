@@ -44,6 +44,21 @@ export class QuoteProductRow {
   readonly catalog = input<Product[]>([]);
   readonly colors = input<Color[]>([]);
 
+
+  readonly restoreTYpes = [{
+    name: 'Material nuevo',
+    value: 'ORIGINAL'
+  },
+  {
+    name: 'Material recuperado',
+    value: 'RESTORE'
+  },
+  {
+    name: 'AMBOS',
+    value: 'BOTH'
+  },
+]
+
   readonly productConfirmed = output<ProductConfirmedEvent>();
 
   readonly addons = rxResource({
@@ -84,17 +99,18 @@ export class QuoteProductRow {
     productId: 0,
     nameProduct: '',
     color: '',
-    price: 0,
-    isRestore: false,
+    originalPrice: 0,
+    originalPriceRestore: 0,
+    restoreType: 'ORIGINAL',
     liner: false,
     tap: false,
     strap: false,
     decoration: false,
     addonProducts: [
-      { productId: 0, nameProduct: '', price: 0, type: 'TAPA' },
-      { productId: 0, nameProduct: '', price: 0, type: 'LINER' },
-      { productId: 0, nameProduct: '', price: 0, type: 'MANIJA' },
-      { productId: 0, nameProduct: '', price: 0, type: 'DECORATION' }
+      { productId: 0, nameProduct: '', originalPrice: 0, originalPriceRestore: 0, type: 'TAPA' },
+      { productId: 0, nameProduct: '',originalPrice: 0, originalPriceRestore: 0, type: 'LINER' },
+      { productId: 0, nameProduct: '', originalPrice: 0, originalPriceRestore: 0,type: 'MANIJA' },
+      { productId: 0, nameProduct: '', originalPrice: 0, originalPriceRestore: 0, type: 'DECORATION' }
     ],
   });
 
@@ -102,7 +118,9 @@ export class QuoteProductRow {
   readonly productForm = form(this.formModel, (schemaPath) => {
     min(schemaPath.productId, 1, { message: 'Seleccione un producto' });
     required(schemaPath.color, { message: 'Color requerido' });
-    required(schemaPath.price, { message: 'campo requerido' });
+    required(schemaPath.originalPrice, { message: 'campo requerido' });
+    required(schemaPath.originalPriceRestore, { message: 'campo requerido' });
+    required(schemaPath.restoreType, { message: 'campo requerido' });
   });
 
   readonly hasRestorePrice = computed(
@@ -126,10 +144,20 @@ export class QuoteProductRow {
   );
 
   readonly totalPrice = computed(() => {
-    const productPrice = this.productForm.price().value();
+    const productPrice = this.productForm.originalPrice().value();
     const freight = this.freight.value()?.freight ?? 0;
-    const addonsPrice = this.productForm.addonProducts().value().reduce((acc, item) => acc + item.price, 0);
+    const addonsPrice = this.productForm.addonProducts().value().reduce((acc, item) => acc + item.originalPrice, 0);
     return productPrice + addonsPrice + freight;
+  });
+
+  readonly totalPriceRestore = computed(() => {
+    if (this.hasRestorePrice()) {
+      const productPrice = this.productForm.originalPriceRestore().value();
+      const freight = this.freight.value()?.freight ?? 0;
+      const addonsPrice = this.productForm.addonProducts().value().reduce((acc, item) => acc + item.originalPriceRestore, 0);
+      return productPrice + addonsPrice + freight;
+    }
+    return 0;
   });
 
 
@@ -152,12 +180,6 @@ export class QuoteProductRow {
     const selected = this.addons.value()?.find((a) => a.id === id);
     if (!selected) return;
 
-    const isRestore = this.productForm.isRestore().value();
-    const price =
-      isRestore && selected.originalPriceRestore != null
-        ? selected.originalPriceRestore
-        : selected.originalPrice;
-
     this.formModel.update((model) => ({
       ...model,
       addonProducts: model.addonProducts.map((addon) =>
@@ -166,7 +188,8 @@ export class QuoteProductRow {
             ...addon,
             productId: selected.addonProductId,
             nameProduct: selected.addonName,
-            price,
+            originalPrice: selected.originalPrice,
+            originalPriceRestore: selected.originalPriceRestore ?? 0
           }
           : addon,
       ),
@@ -202,28 +225,18 @@ export class QuoteProductRow {
       clearTimeout(this.blurTimeoutId);
       this.blurTimeoutId = null;
     }
-
     this.dropdownFocused.set(false);
     this.selectedProduct.set(product);
     this.productForm.productId().value.set(product.id);
     this.productForm.nameProduct().value.set(product.name);
     if (product.originalPriceRestore == null) {
-      this.productForm.isRestore().value.set(false);
+      this.productForm.restoreType().value.set('ORIGINAL');
     }
-    this.applyPriceFromCatalog(product);
     if (product.color) {
       this.productForm.color().value.set(product.color);
     }
-
-    this.productSearchQuery.set(product.name);
-  }
-
-  onRestoreToggle(): void {
-    const product = this.selectedProduct();
-    if (!product) {
-      return;
-    }
     this.applyPriceFromCatalog(product);
+    this.productSearchQuery.set(product.name);
   }
 
   confirmProduct(): void {
@@ -242,7 +255,9 @@ export class QuoteProductRow {
       ...catalogProduct,
       color: this.productForm.color().value(),
       originalPrice: this.totalPrice(),
-      addonProducts: this.productForm.addonProducts().value()
+      originalPriceRestore:this.totalPriceRestore(),
+      addonProducts: this.productForm.addonProducts().value(),
+      restoreType: this.productForm.restoreType().value()
     };
 
     this.rowConfirmed.set(true);
@@ -251,11 +266,7 @@ export class QuoteProductRow {
   }
 
   private applyPriceFromCatalog(product: Product): void {
-    const isRestore = this.productForm.isRestore().value();
-    this.productForm.price().value.set(
-      isRestore ? (product.originalPriceRestore ?? product.originalPrice) : product.originalPrice,
-    );
+    this.productForm.originalPrice().value.set(product.originalPrice);
+    if (product.originalPriceRestore) this.productForm.originalPriceRestore().value.set(product.originalPriceRestore);
   }
-
-
 }

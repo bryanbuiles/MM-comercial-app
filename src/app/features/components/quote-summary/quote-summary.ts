@@ -1,7 +1,7 @@
-import { Component, input, output } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
+import { Component, input, output } from '@angular/core';
 import { LucideClipboardList, LucideDownload, LucidePackage } from '@lucide/angular';
-import { Product } from '@shared/models/product-interface';
+import { ProductPLus } from '@shared/models/product-interface';
 
 @Component({
   selector: 'app-quote-summary',
@@ -9,6 +9,6 @@ import { Product } from '@shared/models/product-interface';
   templateUrl: './quote-summary.html',
 })
 export class QuoteSummary {
-  readonly products = input<Product[]>([]);
+  readonly products = input<ProductPLus[]>([]);
   readonly generate = output<void>();
 }

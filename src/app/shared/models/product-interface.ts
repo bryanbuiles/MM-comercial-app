@@ -25,19 +25,23 @@ export interface Product {
 }
 
 export interface AddonProduct extends Omit<ProductFormArray,
-    'isRestore' | 'addonProducts' | 'color' | 'tap' | 'decoration' | 'liner' | 'strap'> {
+    'restoreType' | 'addonProducts' | 'color' | 'tap' | 'decoration' | 'liner' | 'strap'> {
     type: ProductType
 }
 
 export interface ProductPLus extends Product {
     addonProducts: AddonProduct[];
+    restoreType: Restore;
 }
+
+export type Restore = 'ORIGINAL' | 'RESTORE' | 'BOTH';
 
 export interface ProductFormArray {
     productId: number;
     nameProduct: string;
-    price: number;
-    isRestore: boolean;
+    originalPrice: number;
+    originalPriceRestore: number;
+    restoreType: Restore;
     color: string;
     tap: boolean;
     decoration: boolean;
