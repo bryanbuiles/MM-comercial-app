@@ -4,3 +4,9 @@ export interface User {
     email: string;
     role: 'USER' | 'ADMIN';
 }
+
+export interface UserPLus extends User {
+    phone: string;
+    position: string;
+    signature: string
+}

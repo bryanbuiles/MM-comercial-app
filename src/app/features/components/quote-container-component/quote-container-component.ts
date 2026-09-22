@@ -17,12 +17,16 @@ import {
   LucideUser,
 } from '@lucide/angular';
 import { Enterprise } from '@shared/models/enterprise-interface';
+import { LocalStorageEnum } from '@shared/models/enums';
 import { ProductPLus } from '@shared/models/product-interface';
 import { QuoteHeaderForm } from '@shared/models/quotation';
+import { User } from '@shared/models/user-interface';
 import { CitiesService } from '@shared/services/cities-service';
 import { ColorService } from '@shared/services/color-service';
 import { CompaniesService } from '@shared/services/companies-service';
+import { LocalStorageService } from '@shared/services/local-storage-service';
 import { ProductsService } from '@shared/services/products-service';
+import { UserService } from '@shared/services/user-service';
 import 'cally';
 import { ProductConfirmedEvent, QuoteProductRow } from '../quote-product-row/quote-product-row';
 import { QuoteSummary } from '../quote-summary/quote-summary';
@@ -70,6 +74,8 @@ export class QuoteContainerComponent {
   private readonly companiesService = inject(CompaniesService);
   private readonly productsService = inject(ProductsService);
   private readonly colorService = inject(ColorService);
+  private readonly localStorageService = inject(LocalStorageService);
+  private readonly userService = inject(UserService);
 
   readonly minDate = this.toIsoDate(new Date());
 
@@ -89,6 +95,14 @@ export class QuoteContainerComponent {
     stream: () => this.colorService.getAllColors(),
   });
 
+  userData = rxResource({
+    params: () => {
+      const id = this.user().id;
+      return id > 0 ? id : undefined
+    },
+    stream: ({params: id}) => this.userService.getUserById(id)
+  });
+
   readonly filteredCompanies = computed(() => {
     const query = this.quoteForm.companyName().value().trim().toLowerCase();
     return this.companies.value()?.filter((company) => company.name.toLowerCase().includes(query)) ?? [];
@@ -96,6 +110,15 @@ export class QuoteContainerComponent {
 
   readonly companyDropdownOpen = signal(false);
   readonly cityId = signal(0);
+
+  readonly user = signal<User>(
+    this.localStorageService.getItem<User>(LocalStorageEnum.USER) ?? {
+      id: 0,
+      name: '',
+      email: '',
+      role: 'USER',
+    },
+  );
 
   readonly showCompanyDropdown = computed(
     () => this.companyDropdownOpen() && this.filteredCompanies().length > 0,

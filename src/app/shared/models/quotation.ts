@@ -25,3 +25,9 @@ export interface QuotationRequest {
     header: QuoteHeaderForm,
     products: ProductPLus
 }
+
+export interface QuotationResponse {
+    url: string;
+    fileName: string;
+    expiresInSeconds: number;
+}
