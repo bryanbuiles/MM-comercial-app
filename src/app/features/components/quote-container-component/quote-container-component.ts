@@ -1,4 +1,4 @@
-import { Component, computed, CUSTOM_ELEMENTS_SCHEMA, inject, signal } from '@angular/core';
+import { afterRenderEffect, Component, computed, CUSTOM_ELEMENTS_SCHEMA, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { debounce, form, FormField, maxLength, min, minLength, required } from '@angular/forms/signals';
 import {
@@ -19,15 +19,17 @@ import {
 import { Enterprise } from '@shared/models/enterprise-interface';
 import { LocalStorageEnum } from '@shared/models/enums';
 import { ProductPLus } from '@shared/models/product-interface';
-import { QuoteHeaderForm } from '@shared/models/quotation';
+import { QuotationRequest, QuotationSalesPerson, QuoteHeaderForm } from '@shared/models/quotation';
 import { User } from '@shared/models/user-interface';
 import { CitiesService } from '@shared/services/cities-service';
 import { ColorService } from '@shared/services/color-service';
 import { CompaniesService } from '@shared/services/companies-service';
 import { LocalStorageService } from '@shared/services/local-storage-service';
 import { ProductsService } from '@shared/services/products-service';
+import { QuotationService } from '@shared/services/quotation-service';
 import { UserService } from '@shared/services/user-service';
 import 'cally';
+import { tap } from 'rxjs';
 import { ProductConfirmedEvent, QuoteProductRow } from '../quote-product-row/quote-product-row';
 import { QuoteSummary } from '../quote-summary/quote-summary';
 
@@ -76,6 +78,7 @@ export class QuoteContainerComponent {
   private readonly colorService = inject(ColorService);
   private readonly localStorageService = inject(LocalStorageService);
   private readonly userService = inject(UserService);
+  private readonly quotationService = inject(QuotationService);
 
   readonly minDate = this.toIsoDate(new Date());
 
@@ -103,6 +106,16 @@ export class QuoteContainerComponent {
     stream: ({params: id}) => this.userService.getUserById(id)
   });
 
+  readonly quotationPdf = rxResource({
+    params: () => this.quotationPayload(),
+    stream: ({params}) => this.quotationService.setQuotation(params.body).pipe(
+      tap((response) => {
+        window.open(response.url, '_blank', 'noopener');
+      })
+    )
+  });
+
+
   readonly filteredCompanies = computed(() => {
     const query = this.quoteForm.companyName().value().trim().toLowerCase();
     return this.companies.value()?.filter((company) => company.name.toLowerCase().includes(query)) ?? [];
@@ -119,6 +132,10 @@ export class QuoteContainerComponent {
       role: 'USER',
     },
   );
+
+  private readonly quotationPayload = signal<{ requestId: number; body: QuotationRequest } | undefined>(undefined);
+  private nextQuoteRequestId = 0;
+  readonly sellerNotice = signal<string | null>(null);
 
   readonly showCompanyDropdown = computed(
     () => this.companyDropdownOpen() && this.filteredCompanies().length > 0,
@@ -144,6 +161,22 @@ export class QuoteContainerComponent {
   readonly canAddAnotherProduct = computed(() => {
     const lastIndex = this.productRowIds().length - 1;
     return lastIndex >= 0 && this.confirmedByRow().has(lastIndex);
+  });
+
+  private readonly quoteLoader = viewChild<ElementRef<HTMLDialogElement>>('quoteLoader');
+
+  private readonly blockUiWhileGenerating = afterRenderEffect({
+    write: () => {
+      const dialog = this.quoteLoader()?.nativeElement;
+      if (!dialog) return;
+      if (this.quotationPdf.isLoading()) {
+        if (!dialog.open) {
+          dialog.showModal();
+        }
+      } else if (dialog.open) {
+        dialog.close();
+      }
+    }
   });
 
   formModel = signal<Omit<QuoteHeaderForm, "salesPerson">>({
@@ -225,11 +258,30 @@ export class QuoteContainerComponent {
 
   generateQuote(): void {
     const products = this.productsList();
-    if (products.length === 0) {
+    if (products.length === 0 || this.quotationPdf.isLoading()) return;
+
+    const salesPerson = this.toSalesPerson();
+    if (!salesPerson) {
+      this.sellerNotice.set(
+        this.userData.error()
+          ? 'No se pudieron cargar los datos del vendedor.'
+          : 'Los datos del vendedor aún no están listos.',
+      );
       return;
     }
-    // TODO: integrar con el servicio de generación de cotización (backend pendiente).
-    console.log('Generar cotización', { header: this.formModel(), products });
+
+    this.sellerNotice.set(null);
+    this.quotationPayload.set({
+      requestId: this.nextQuoteRequestId++,
+      body: {
+        header: {
+          ...this.formModel(),
+          salesPerson
+        },
+        products
+      }
+    });
+
   }
 
   private toIsoDate(date: Date): string {
@@ -243,5 +295,16 @@ export class QuoteContainerComponent {
     const [year, month, day] = iso.split('-').map(Number);
     const paddedDay = String(day).padStart(2, '0');
     return `${paddedDay} de ${MONTHS_ES[month - 1]} de ${year}`;
+  }
+
+  private toSalesPerson(): QuotationSalesPerson | null {
+    const user = this.userData.value();
+    if (!user) return null;
+    return {
+      name: user.name,
+      celPhone: user.phone,
+      position: user.position,
+      signatureUrl: user.signature,
+    }
   }
 }

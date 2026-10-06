@@ -23,7 +23,7 @@ export interface QuotationSalesPerson {
 
 export interface QuotationRequest {
     header: QuoteHeaderForm,
-    products: ProductPLus
+    products: ProductPLus[]
 }
 
 export interface QuotationResponse {

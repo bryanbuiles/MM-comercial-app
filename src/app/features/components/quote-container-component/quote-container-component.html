@@ -1,3 +1,25 @@
+<dialog #quoteLoader class="modal" (cancel)="$event.preventDefault()">
+    <div class="modal-box flex flex-col items-center gap-4 text-center">
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+      <p class="text-sm sm:text-base">Generando cotización...</p>
+    </div>
+  </dialog>
+
+@if (sellerNotice() || quotationPdf.error()) {
+<div class="toast toast-top toast-end z-50">
+    @if (sellerNotice(); as notice) {
+    <div role="alert" class="alert alert-warning sm:alert-horizontal">
+        <span>{{ notice }}</span>
+    </div>
+    }
+    @if (quotationPdf.error()) {
+    <div role="alert" class="alert alert-error sm:alert-horizontal">
+        <span>No se pudo generar la cotización. Intenta de nuevo.</span>
+    </div>
+    }
+</div>
+}
+
 <section class="space-y-6 p-4 sm:p-6 md:p-8" animate.enter="page-enter">
     <header class="flex items-center gap-3">
         <span class="rounded-box bg-primary/10 p-3 text-primary shrink-0">
