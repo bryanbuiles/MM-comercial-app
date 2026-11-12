@@ -1,0 +1,82 @@
+<div class="card bg-base-100 shadow-sm lg:sticky lg:top-6">
+    <div class="card-body gap-4">
+        <h2 class="card-title text-lg sm:text-xl">
+            <svg lucideClipboardList [size]="20" class="text-primary" aria-hidden="true"></svg>
+            Resumen de la cotización
+        </h2>
+
+        @if (products().length) {
+        <ul class="grid grid-cols-1 gap-3">
+            @for (product of products(); track $index) {
+            <li class="rounded-box border border-base-300 bg-base-200/40 p-4">
+                @if (showsBoth(product)) {
+                <div class="space-y-3">
+                    <div class="space-y-1">
+                        <h3 class="font-semibold text-sm sm:text-base">{{ product.name }}</h3>
+                        @if (product.color) {
+                        <p class="text-xs text-base-content/70">{{ product.color }}</p>
+                        }
+                    </div>
+                    <div class="stats w-full bg-base-100 shadow-sm">
+                        <div class="stat p-3">
+                            <div class="stat-title">Material nuevo</div>
+                            <div class="stat-value text-base text-primary sm:text-lg">
+                                {{ product.originalPrice | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+                            </div>
+                        </div>
+                        <div class="stat p-3">
+                            <div class="stat-title">Material recuperado</div>
+                            <div class="stat-value text-base text-primary sm:text-lg">
+                                {{ product.originalPriceRestore | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                } @else if (showsOriginal(product)) {
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0 space-y-1">
+                        <h3 class="font-semibold text-sm sm:text-base">{{ product.name }}</h3>
+                        <div class="flex flex-wrap items-center gap-2">
+                            @if (product.color) {
+                            <span class="text-xs text-base-content/70">{{ product.color }}</span>
+                            }
+                            <span class="badge badge-ghost badge-sm">Material nuevo</span>
+                        </div>
+                    </div>
+                    <span class="shrink-0 text-base font-bold text-primary sm:text-lg">
+                        {{ product.originalPrice | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+                    </span>
+                </div>
+                } @else if (showsRestore(product)) {
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0 space-y-1">
+                        <h3 class="font-semibold text-sm sm:text-base">{{ product.name }}</h3>
+                        <div class="flex flex-wrap items-center gap-2">
+                            @if (product.color) {
+                            <span class="text-xs text-base-content/70">{{ product.color }}</span>
+                            }
+                            <span class="badge badge-ghost badge-sm">Material recuperado</span>
+                        </div>
+                    </div>
+                    <span class="shrink-0 text-base font-bold text-primary sm:text-lg">
+                        {{ product.originalPriceRestore | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+                    </span>
+                </div>
+                }
+            </li>
+            }
+        </ul>
+
+        <button type="button" class="btn btn-primary w-full gap-2"
+            [disabled]="!products().length" (click)="generate.emit()">
+            <svg lucideDownload [size]="18" aria-hidden="true"></svg>
+            Generar cotización
+        </button>
+        } @else {
+        <div class="flex flex-col items-center gap-3 py-8 text-center text-base-content/60">
+            <svg lucidePackage [size]="40" class="opacity-40" aria-hidden="true"></svg>
+            <p class="text-sm">Aún no hay productos confirmados.</p>
+        </div>
+        }
+    </div>
+</div>

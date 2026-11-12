@@ -1,0 +1,274 @@
+<dialog #quoteLoader class="modal" (cancel)="$event.preventDefault()">
+    <div class="modal-box flex flex-col items-center gap-4 text-center">
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+      <p class="text-sm sm:text-base">Generando cotización...</p>
+    </div>
+  </dialog>
+
+@if (sellerNotice() || quotationPdf.error()) {
+<div class="toast toast-top toast-end z-50">
+    @if (sellerNotice(); as notice) {
+    <div role="alert" class="alert alert-warning sm:alert-horizontal">
+        <span>{{ notice }}</span>
+    </div>
+    }
+    @if (quotationPdf.error()) {
+    <div role="alert" class="alert alert-error sm:alert-horizontal">
+        <span>No se pudo generar la cotización. Intenta de nuevo.</span>
+    </div>
+    }
+</div>
+}
+
+<section class="space-y-6 p-4 sm:p-6 md:p-8" animate.enter="page-enter">
+    <header class="flex items-center gap-3">
+        <span class="rounded-box bg-primary/10 p-3 text-primary shrink-0">
+            <svg lucideFileText [size]="28" aria-hidden="true"></svg>
+        </span>
+        <div>
+            <h1 class="text-2xl font-bold sm:text-3xl">Generar cotización</h1>
+            <p class="text-sm text-base-content/70 sm:text-base">
+                Complete los datos para generar la cotización.
+            </p>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <form class="space-y-6 lg:col-span-2">
+            <div class="card bg-base-100 shadow-sm">
+                <div class="card-body gap-4">
+                    <h2 class="card-title text-lg sm:text-xl">
+                        <svg lucideBuilding2 [size]="20" class="text-primary" aria-hidden="true"></svg>
+                        Datos del cliente
+                    </h2>
+
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <fieldset class="fieldset md:col-span-2">
+                            <legend class="fieldset-legend">Empresa</legend>
+                            <div class="dropdown w-full" [class.dropdown-open]="showCompanyDropdown()">
+                                <label class="input input-bordered flex w-full items-center gap-2">
+                                    <svg lucideBuilding2 [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                                    <input type="text" class="grow" placeholder="Buscar o escribir empresa..."
+                                        [formField]="quoteForm.companyName" (focus)="openCompanyDropdown()"
+                                        (input)="openCompanyDropdown()" />
+                                </label>
+
+                                @if (showCompanyDropdown()) {
+                                <ul class="dropdown-content menu bg-base-100 rounded-box z-10 max-h-60 w-full flex-nowrap overflow-y-auto p-2 shadow">
+                                    @for (empresa of filteredCompanies(); track empresa.id) {
+                                    <li>
+                                        <button type="button" (click)="SetCompany(empresa)">
+                                            <svg lucideBuilding2 [size]="16" class="opacity-60" aria-hidden="true"></svg>
+                                            {{ empresa.name }}
+                                        </button>
+                                    </li>
+                                    }
+                                </ul>
+                                }
+                            </div>
+                        </fieldset>
+
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">Nombre persona a quien va dirigido</legend>
+                            <label class="input input-bordered flex w-full items-center gap-2"
+                                [class.input-error]="quoteForm.name().invalid() && quoteForm.name().touched()">
+                                <svg lucideUser [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                                <input type="text" class="grow" placeholder="Nombre" [formField]="quoteForm.name" />
+                            </label>
+                            @if (quoteForm.name().invalid() && quoteForm.name().touched()) {
+                            @for (error of quoteForm.name().errors(); track error.kind) {
+                            <p class="label text-error">{{ error.message }}</p>
+                            }
+                            }
+                        </fieldset>
+
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">Cargo</legend>
+                            <label class="input input-bordered flex w-full items-center gap-2"
+                                [class.input-error]="quoteForm.position().invalid() && quoteForm.position().touched()">
+                                <svg lucideBriefcase [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                                <input type="text" class="grow" placeholder="Cargo" [formField]="quoteForm.position" />
+                            </label>
+                            @if (quoteForm.position().invalid() && quoteForm.position().touched()) {
+                            @for (error of quoteForm.position().errors(); track error.kind) {
+                            <p class="label text-error">{{ error.message }}</p>
+                            }
+                            }
+                        </fieldset>
+
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">Consecutivo</legend>
+                            <label class="input input-bordered flex w-full items-center gap-2"
+                                [class.input-error]="quoteForm.consecutive().invalid() && quoteForm.consecutive().touched()">
+                                <svg lucideHash [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                                <input type="text" class="grow" placeholder="Consecutivo"
+                                    [formField]="quoteForm.consecutive" />
+                            </label>
+                            @if (quoteForm.consecutive().invalid() && quoteForm.consecutive().touched()) {
+                            @for (error of quoteForm.consecutive().errors(); track error.kind) {
+                            <p class="label text-error">{{ error.message }}</p>
+                            }
+                            }
+                        </fieldset>
+
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">Ciudad a la que va dirigido</legend>
+                            <label class="select select-bordered flex w-full items-center gap-2"
+                                [class.select-error]="quoteForm.city().invalid() && quoteForm.city().touched()">
+                                <svg lucideMapPin [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                                <select class="grow" [formField]="quoteForm.city"
+                                    (change)="onCityChange($any($event.target).value)">
+                                    <option disabled selected value="">Seleccione una ciudad</option>
+                                    @for (city of cities.value(); track city.id) {
+                                    <option [value]="city.name">{{ city.name }}</option>
+                                    }
+                                </select>
+                            </label>
+                            @if (quoteForm.city().invalid() && quoteForm.city().touched()) {
+                            @for (error of quoteForm.city().errors(); track error.kind) {
+                            <p class="label text-error">{{ error.message }}</p>
+                            }
+                            }
+                        </fieldset>
+
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">Fecha de la cotización</legend>
+                            <div class="dropdown w-full">
+                                <div tabindex="0" role="button"
+                                    class="input input-bordered flex w-full items-center gap-2"
+                                    [class.input-error]="quoteForm.date().invalid() && quoteForm.date().touched()">
+                                    <svg lucideCalendar [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                                    <span class="grow text-left"
+                                        [class.text-base-content/50]="!quoteForm.date().value()">
+                                        {{ quoteForm.date().value() || 'Seleccione una fecha' }}
+                                    </span>
+                                </div>
+                                <div tabindex="-1"
+                                    class="dropdown-content z-10 rounded-box bg-base-100 p-0 shadow-lg">
+                                    <calendar-date class="cally bg-base-100 border border-base-300 shadow-lg rounded-box"
+                                        [attr.min]="minDate" locale="es-CO" (change)="onDateChange($event)">
+                                        <svg aria-label="Mes anterior" class="fill-current size-4" slot="previous"
+                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                            <path fill="currentColor"
+                                                d="M15.75 19.5 8.25 12l7.5-7.5"></path>
+                                        </svg>
+                                        <svg aria-label="Mes siguiente" class="fill-current size-4" slot="next"
+                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                            <path fill="currentColor"
+                                                d="m8.25 4.5 7.5 7.5-7.5 7.5"></path>
+                                        </svg>
+                                        <calendar-month></calendar-month>
+                                    </calendar-date>
+                                </div>
+                            </div>
+                            @if (quoteForm.date().invalid() && quoteForm.date().touched()) {
+                            @for (error of quoteForm.date().errors(); track error.kind) {
+                            <p class="label text-error">{{ error.message }}</p>
+                            }
+                            }
+                        </fieldset>
+
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend opacity-0 select-none" aria-hidden="true">
+                                Compra a Credito
+                            </legend>
+                            <label class="label cursor-pointer justify-start gap-3 h-12 items-center">
+                                <input type="checkbox" class="checkbox checkbox-primary"
+                                    [formField]="quoteForm.credit" />
+                                Compra a Credito
+                            </label>
+                        </fieldset>
+                        <div class="grid grid-cols-1 gap-4 md:col-span-2"
+                            [class.md:grid-cols-3]="quoteForm.credit().value()"
+                            [class.md:grid-cols-2]="!quoteForm.credit().value()">
+                            @if (quoteForm.credit().value()) {
+                            <fieldset class="fieldset">
+                                <legend class="fieldset-legend">Días de crédito</legend>
+                                <label class="input input-bordered flex w-full items-center gap-2"
+                                    [class.input-error]="quoteForm.daysCredit().invalid() && quoteForm.daysCredit().touched()">
+                                    <svg lucideCalendarClock [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                                    <input type="number" class="grow" placeholder="30"
+                                        [formField]="quoteForm.daysCredit" />
+                                </label>
+                                @if (quoteForm.daysCredit().invalid() && quoteForm.daysCredit().touched()) {
+                                @for (error of quoteForm.daysCredit().errors(); track error.kind) {
+                                <p class="label text-error">{{ error.message }}</p>
+                                }
+                                }
+                            </fieldset>
+                            }
+                            <fieldset class="fieldset">
+                                <legend class="fieldset-legend">Días de entrega</legend>
+                                <label class="input input-bordered flex w-full items-center gap-2"
+                                    [class.input-error]="quoteForm.daysTransport().invalid() && quoteForm.daysTransport().touched()">
+                                    <svg lucideTruck [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                                    <input type="number" class="grow" placeholder="15"
+                                        [formField]="quoteForm.daysTransport" />
+                                </label>
+                                @if (quoteForm.daysTransport().invalid() && quoteForm.daysTransport().touched()) {
+                                @for (error of quoteForm.daysTransport().errors(); track error.kind) {
+                                <p class="label text-error">{{ error.message }}</p>
+                                }
+                                }
+                            </fieldset>
+                            <fieldset class="fieldset">
+                                <legend class="fieldset-legend">Unidades a fabricar</legend>
+                                <label class="input input-bordered flex w-full items-center gap-2"
+                                    [class.input-error]="quoteForm.minQuantity().invalid() && quoteForm.minQuantity().touched()">
+                                    <svg lucideBoxes [size]="18" class="opacity-60" aria-hidden="true"></svg>
+                                    <input type="number" class="grow" placeholder="100"
+                                        [formField]="quoteForm.minQuantity" />
+                                </label>
+                                @if (quoteForm.minQuantity().invalid() && quoteForm.minQuantity().touched()) {
+                                @for (error of quoteForm.minQuantity().errors(); track error.kind) {
+                                <p class="label text-error">{{ error.message }}</p>
+                                }
+                                }
+                            </fieldset>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow-sm">
+                <div class="card-body gap-4">
+                    <h2 class="card-title text-lg sm:text-xl">
+                        <svg lucidePackage [size]="20" class="text-primary" aria-hidden="true"></svg>
+                        Productos de la cotización
+                    </h2>
+
+                    @if (canAddProducts()) {
+                    <div class="space-y-6">
+                        @for (rowId of productRowIds(); track rowId; let rowIndex = $index) {
+                        <app-quote-product-row class="block" [rowIndex]="rowIndex" [cityId]="cityId()"
+                            [catalog]="products.value() ?? []" [colors]="colors.value() ?? []"
+                            (productConfirmed)="onProductConfirmed($event)" />
+                        }
+                        <div class="space-y-2 pt-2">
+                            <button type="button" class="btn btn-outline w-full gap-2 sm:w-auto"
+                                [disabled]="!canAddAnotherProduct()" (click)="addProduct()">
+                                <svg lucidePlus [size]="18" aria-hidden="true"></svg>
+                                Agregar otro producto
+                            </button>
+                            @if (!canAddAnotherProduct()) {
+                            <p class="text-sm text-base-content/70">
+                                Confirme el producto actual antes de agregar otro.
+                            </p>
+                            }
+                        </div>
+                    </div>
+                    } @else {
+                    <div class="alert alert-info">
+                        <svg lucideInfo [size]="20" aria-hidden="true"></svg>
+                        <span>Complete y valide los datos de empresa, contacto y ciudad para agregar productos.</span>
+                    </div>
+                    }
+                </div>
+            </div>
+        </form>
+
+        <aside class="lg:col-span-1">
+            <app-quote-summary [products]="productsList()" (generate)="generateQuote()" />
+        </aside>
+    </div>
+</section>
