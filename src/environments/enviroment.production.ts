@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  // Sustituye por la URL real del API en producción.
-  apiUrl: 'https://CHANGE_ME/MM_commerce/api',
+  // Público: queda embebido en el JS. Reemplazar TU-DOMINIO antes del build de producción.
+  apiUrl: 'https://api.TU-DOMINIO/MM_commerce/api',
 };
